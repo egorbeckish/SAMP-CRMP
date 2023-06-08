@@ -2,10 +2,11 @@
 #include <fix>
 #include <a_mysql>
 #include <streamer>
-#include <dc_cmd>
+#include <Pawn.CMD>
 #include <sscanf2>
 #include <foreach>
 #include <Pawn.Regex>
+#include <crashdetect>
 
 
 
@@ -15,7 +16,7 @@
 #define 	MYSQL_BASE 	"project"
 
 #define 	SCM 	SendClientMessage
-#define 	SCMTA 	SendClientMessageToALL
+#define 	SCMTA 	SendClientMessageToAll
 #define 	SPD 	ShowPlayerDialog
 
 #define COLOR_WHITE 0xFFFFFFFF
@@ -56,19 +57,21 @@ public OnGameModeInit()
 stock ConnectMySQL()
 {
     dbHandle = mysql_connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_BASE);
-    switch(mysql_errno())
+    switch(mysql_errno(dbHandle))
     {
-		case 0: print("Connect to MySQL");
-		default: print("Don't connect to MySQL");
+        case 0: print("Connected to MySQL");
+        default: print("Failed to connect to MySQL");
     }
-    
+
     mysql_log(ERROR | WARNING);
     mysql_set_charset("cp1251");
+    return mysql_errno(dbHandle);
 }
 
 public OnGameModeExit()
 {
-	return 1;
+    mysql_close(dbHandle);
+    return 1;
 }
 
 public OnPlayerRequestClass(playerid, classid)
@@ -79,36 +82,25 @@ public OnPlayerRequestClass(playerid, classid)
 public OnPlayerConnect(playerid)
 {
     GetPlayerName(playerid, player_info[playerid][NAME], MAX_PLAYER_NAME);
-    static const fmt_query[] = "SELECT 'id' FROM 'users' WHERE 'name' = '%s'";
-    
-	new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME)];
- 	format(query, sizeof(query), fmt_query, player_info[playerid][NAME]);
- 	
- 	mysql_tquery(dbHandle, query, "CheckRegistration", "i", playerid);
- 	
-	return 1;
+    new query[128];
+    format(query, sizeof(query), "SELECT id FROM users WHERE name = '%s'", player_info[playerid][NAME]);
+
+    mysql_tquery(dbHandle, query, "CheckRegistration", "i", playerid);
+
+    return 1;
 }
 
 forward CheckRegistration(playerid);
 public CheckRegistration(playerid)
 {
-	new rows;
-	cache_get_row_count(rows);
-	if(rows) ShowLogin(playerid);
-	else ShowRegistration(playerid);
-	
-	return 1;
+    new rows;
+    cache_get_row_count(rows);
+    if (rows > 0) SCM(playerid, COLOR_WHITE, "1.");
+    else SCM(playerid, COLOR_WHITE, "2.");
+
+    return 1;
 }
 
-stock ShowLogin(playerid)
-{
-	SCM(playerid, COLOR_WHITE, "1");
-}
-
-stock ShowRegistration(playerid)
-{
-	SCM(playerid, COLOR_WHITE, "2");
-}
 
 public OnPlayerDisconnect(playerid, reason)
 {
