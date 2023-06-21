@@ -21,9 +21,11 @@
 
 #define COLOR_WHITE 0xFFFFFFFF
 #define COLOR_RED 0xFF0000FF
+#define COLOR_RED2 0xFF5E5EAA
 #define COLOR_GREEN 0x00FF26AA
 #define COLOR_GREY  0xA2A1AbAA
 #define COLOR_YELLOW  0xFFF017AA
+#define COLOR_BLUE  0x308DFFAA
 
 new MySQL:dbHandle;
 new PlayerAFK[MAX_PLAYERS];
@@ -57,6 +59,9 @@ enum player
 	EXP,
 	HP,
 	ARM,
+	FRACTION,
+	RANK,
+	NAME_RANK,
 };
 new player_info[MAX_PLAYERS][player];
 
@@ -383,7 +388,6 @@ stock GiveMoney(playerid, money)
  	format(query, sizeof(query), fmt_query, player_info[playerid][MONEY], player_info[playerid][ID]);
  	mysql_tquery(dbHandle, query);
  	GivePlayerMoney(playerid, money);
-
 }
 
 public OnPlayerStreamIn(playerid, forplayerid)
@@ -696,6 +700,9 @@ public PlayerLogin(playerid)
 		cache_get_value_name_int(0, "exp", player_info[playerid][EXP]);
 		cache_get_value_name_int(0, "health", player_info[playerid][HP]);
 		cache_get_value_name_int(0, "armour", player_info[playerid][ARM]);
+		cache_get_value_name_int(0, "fraction", player_info[playerid][FRACTION]);
+		cache_get_value_name_int(0, "rank", player_info[playerid][RANK]);
+		cache_get_value_name(0, "name_rank", player_info[playerid][NAME_RANK], 30);
 
 		TogglePlayerSpectating(playerid, 0);
 		SetPVarInt(playerid, "logged", 1);
@@ -884,7 +891,7 @@ CMD:makeadminoffline(playerid, params[])
 					new string[100];
 					format(string, sizeof(string), "Âû âûäàëè îôôëàéí %s àäìèíèñòðàòèâíûå ïðàâà %i óðîâíÿ", name, level);
 					SCM(playerid, COLOR_YELLOW, string);
-					
+
 					static const fmt_query[] = "UPDATE users SET admin = '%i' WHERE name = '%s'";
 					new query[sizeof(fmt_query) + (-2 + 4) + (-2 + MAX_PLAYER_NAME)];
  					format(query, sizeof(query), fmt_query, level, name);
@@ -921,7 +928,7 @@ CMD:kick(playerid, params[])
 					new string2[100];
 					format(string, sizeof(string), "Àäìèíèñòðàòîð %s êèêíóë âàñ c ñåðâåðà. Ïðè÷èíà: %s", player_info[playerid][NAME], condition);
 					format(string2, sizeof(string2), "Àäìèíèñòðàòîð %s êèêíóë èãðîêà %s. Ïðè÷èíà: %s", player_info[playerid][NAME], player_info[id][NAME], condition);
-                    SCMTA(COLOR_GREEN, string2);
+                    SCMTA(COLOR_RED2, string2);
 					SCM(id, COLOR_RED, string);
 					Kick(id);
 				}
@@ -945,8 +952,8 @@ CMD:setskin(playerid, params[])
 		else
 		{
 			if (!(0 <= params[1] <= 311)) SCM(playerid, COLOR_GREY, "Ââåäèòå êîððåêòíûé ID îäåæäû îò 0 äî 311.");
-			else 
-			{ 
+			else
+			{
 				SetPlayerSkin(playerid, params[1]);
 				static const fmt_query[] = "UPDATE users SET skin = '%i' WHERE id = '%i'";
 				new query[sizeof(fmt_query) + (-2 + 3) + (-2 + 8)];
@@ -959,18 +966,121 @@ CMD:setskin(playerid, params[])
 
 
 
-CDM:makeleader(playerid, params[])
-{
-	if (player_info[playerid][ADMIN] >= 5)
-	{
-		if (sscanf(params, "ii", params[0], params[1]))
-		{
-			SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /makeleader [id player] [id fraction]");
-		}
-	}
-}
+// CDM:makeleader(playerid, params[])
+// {
+// 	if (player_info[playerid][ADMIN] >= 5)
+// 	{
+// 		if (sscanf(params, "ii", params[0], params[1]))
+// 		{
+// 			SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /makeleader [id player] [id fraction]");
+// 		}
+
+// 		else
+// 		{
+// 			if ()
+// 			{
+
+// 			}
+
+// 			else
+// 			{
+
+// 			}
+// 		}
+// 	}
+
+// 	return 1;
+// }
 
 
 // OnPlayerWeaponShot
 // OnPlayerTakeDamage
 // OnPlayerGiveDamage
+
+
+
+stock Distance(Float: x, Float: y, Float: z, Float: fx, Float:fy, Float: fz)
+{
+	return floatround(floatsqroot(floatpower(fx - x, 2) + floatpower(fy - y, 2) + floatpower(fz - z, 2)));
+}
+
+CMD:givemoney(playerid, params[])
+{
+	if (sscanf(params, "ui", params[0], params[1])) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /givemoney [id player] [value]");
+	else
+	{
+		if (IsPlayerConnected(params[0]))
+		{
+			if (player_info[playerid][ADMIN] < 1)
+			{
+				new Float:x, Float:y, Float:z, Float:fx, Float:fy, Float:fz;
+				GetPlayerPos(playerid, x, y, z);
+				GetPlayerPos(params[0], fx, fy, fz);
+
+				if (!(1 <= params[1] <= 5000)) SCM(playerid, COLOR_GREY, "Value of money is no more 5000 rubels");
+				else if (playerid == params[0]) SCM(playerid, COLOR_GREY, "You can't give money to yourself");
+				else if (Distance(x, y, z, fx, fy, fz) > 4) SCM(playerid, COLOR_GREY, "You are too far away from the player");
+				else
+				{
+					new string[100], string2[100];
+					format(string, sizeof(string), "You give %s %i rubels", player_info[params[0]][NAME], params[1]);
+					format(string2, sizeof(string2), "%s give you %i rubels", player_info[playerid][NAME], params[1]);
+					SCM(playerid, COLOR_BLUE, string);
+					SCM(params[0], COLOR_BLUE, string2);
+
+					GivePlayerMoney(params[0], params[1]);
+					player_info[params[0]][MONEY] += params[1];
+					static const fmt_query[] = "UPDATE users SET money = '%i' WHERE name = '%s'";
+					new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME)];
+		 			format(query, sizeof(query), fmt_query, player_info[params[0]][MONEY], player_info[params[0]][NAME]);
+		 			mysql_tquery(dbHandle, query);
+
+				}
+			}
+
+			else
+			{
+				new string[100], string2[100];
+				format(string, sizeof(string), "You give player %s %i rubels", player_info[params[0]][NAME], params[1]);
+				format(string2, sizeof(string2), "Administration %s give you %i rubels", player_info[playerid][NAME], params[1]);
+				SCM(playerid, COLOR_BLUE, string);
+				SCM(params[0], COLOR_BLUE, string2);
+
+				GivePlayerMoney(params[0], params[1]);
+				player_info[params[0]][MONEY] += params[1];
+				static const fmt_query[] = "UPDATE users SET money = '%i' WHERE name = '%s'";
+				new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME)];
+	 			format(query, sizeof(query), fmt_query, player_info[params[0]][MONEY], player_info[params[0]][NAME]);
+	 			mysql_tquery(dbHandle, query);
+			}
+		}
+
+		else SCM(playerid, COLOR_GREY, "Player not in server");
+	}
+
+	return 1;
+}
+
+
+CMD:setveh(playerid, params[])
+{
+	if (player_info[playerid][ADMIN] >= 2)
+	{
+		new id;
+		if (sscanf(params, "i", id)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /setveh [id car]");
+		else
+		{
+			if (!(400 <= id <= 611)) SCM(playerid, COLOR_GREY, "Ââåäèòå êîððåêòíûé ID îäåæäû îò 400 äî 611.");
+			else
+			{	
+				new x, y, z;
+				GetPlayerPos(playerid, Float:x, Float:y, Float:z);
+				CreateVehicle(id, Float:x + 2, Float:y + 2, Float:z, 0, 0, 0, -1);
+				// PutPlayerInVehicle(playerid, params[0], 0);
+				// CreateVehicle(vehicletype, Float:x, Float:y, Float:z, Float:rotation, color1, color2, respawn_delay, addsiren=0)
+			}
+		}
+	}
+
+	return 1;
+}
