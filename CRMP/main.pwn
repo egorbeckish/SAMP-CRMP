@@ -95,14 +95,14 @@ public SecondUpdate()
 			new string[] = "{FF0000}AFK: ";
 			if (PlayerAFK[i] < 60)
 			{
-				format(string, sizeof(string), "%s%i naeoia.", PlayerAFK[i]);
+				format(string, sizeof(string), "%s%i сек.", PlayerAFK[i]);
 			}
 
 			else
 			{
 			    new minute = floatround(PlayerAFK[i] / 60, floatround_floor);
 			    new second = PlayerAFK[i] % 60;
-			    format(string, sizeof(string), "%s%i ieioo %i naeoia", string, minute, second);
+			    format(string, sizeof(string), "%s%i мин. %i сек.", string, minute, second);
 			}
 
 			SetPlayerChatBubble(i, string, -1, 20, 1000);
