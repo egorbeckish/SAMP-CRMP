@@ -95,14 +95,14 @@ public SecondUpdate()
 			new string[] = "{FF0000}AFK: ";
 			if (PlayerAFK[i] < 60)
 			{
-				format(string, sizeof(string), "%s%i ñåêóíä.", PlayerAFK[i]);
+				format(string, sizeof(string), "%s%i naeoia.", PlayerAFK[i]);
 			}
 
 			else
 			{
 			    new minute = floatround(PlayerAFK[i] / 60, floatround_floor);
 			    new second = PlayerAFK[i] % 60;
-			    format(string, sizeof(string), "%s%i ìèíóò %i ñåêóíä", string, minute, second);
+			    format(string, sizeof(string), "%s%i ieioo %i naeoia", string, minute, second);
 			}
 
 			SetPlayerChatBubble(i, string, -1, 20, 1000);
@@ -165,29 +165,33 @@ stock ShowLogin(playerid)
 {
     new dialog[300 + (-2 + MAX_PLAYER_NAME)];
 	format(dialog, sizeof(dialog),
-	    "{FFFFFF}Óâàæàåìûé{0089ff} %s{FFFFFF}. Ðàäû âèäåòü âàñ ñíîâà íà íàøåì ñåðâåðå\n\n\
-		Äëÿ ïðîäîëæåíèÿ èãðû ââåäèòå ñâîé ïàðîëü íèæå",
+	    "{FFFFFF}Вход{0089ff} %s{FFFFFF}. Рады приветствовать вас снова на нашем сервере!\n\n\
+		Введи пароль в поле ниже.",
 		player_info[playerid][NAME]
 	 );
-	SPD(playerid, DLG_LOG, DIALOG_STYLE_INPUT, "{ffd100}Àâòîðèçàöèÿ{FFFFFF} ••• Ââîä • Ïàðîëü •••", dialog, "Âîéòè", "Âûõîä");
-	// SCM(playerid, COLOR_WHITE, "Äàííûé àêêàóíò çàðåãèñòðèðîâàí");
+	SPD(playerid, DLG_LOG, DIALOG_STYLE_INPUT, "{ffd100}Авторизация{FFFFFF} ••• Ввод • Пароль •••", dialog, "Далее", "Выход");
+	// SCM(playerid, COLOR_WHITE, "Игрок зарегистрирован");
 }
+
 
 stock ShowRegistration(playerid)
 {
- 	new dialog[300 + (-2 + MAX_PLAYER_NAME)];
+ 	new dialog[400 + (-2 + MAX_PLAYER_NAME)];
 	format(dialog, sizeof(dialog),
-	    "{FFFFFF}Ðåãèñòðàöèÿ{0089ff} %s{FFFFFF}. Ðàäû ïðèâåòñòâîâàòü âàñ íà íàøåì ñåðâåðå\n\
-	    Àêêàóíò ñ äàííûì íèêíåéìîì íå çàðåãèñòððîâàí\n\n\
-		Ïðèäóìàéòå íàäåæíû ïàðîëü äëÿ âàøå àêêàóíòà è íàæìèòå \"Äàëåå\"\n\n\
-  		{0089ff}Ïðèìå÷àíèå:{FFFFFF}\n\
-		\t• Ïàðîëü äîëæåí áûòü îò 8 äî 32 ñèìâîëîâ\n\
-		\t• Ïàðîëü äîëæåí ñîäåðæàòü òîëüêî öèôðû è ëàòèíñêèå áóêâû",
-		player_info[playerid][NAME]
-	 );
-	SPD(playerid, DLG_REG, DIALOG_STYLE_INPUT, "{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Ââîä • Ïàðîëü •••", dialog, "Äàëåå", "Âûõîä");
 
-	//SCM(playerid, COLOR_WHITE, "Äàííûé àêêàóíò íå çàðåãèñòðèðîâàí");
+		"{FFFFFF}Уважаемый {0089ff}%s{FFFFFF}. Рады приветствовать вас на нашем сервере\n\
+		Аккаунт с данным никнеймом не зарегистрирован.\n\
+		Для дальнейшей игры на нашем сервере вам нужно пройти регистрацию.\n\n\
+		Придумайте пароль для вашего аккаунта и нажмите \"Далее\"\n\n\
+		Примечание:\n\
+		\t• Пароль должен содержать от 8 до 32 символов.\n\
+		\t• Пароль должен содержать только цифры и латинские символы.",
+
+		player_info[playerid][NAME]);
+
+	SPD(playerid, DLG_REG, DIALOG_STYLE_INPUT, "{ffd100}Регистрация{FFFFFF} ••• Вход • Пароль •••", dialog, "Далее", "Выход");
+
+	//SCM(playerid, COLOR_WHITE, "Игрок не зарегистрирован");
 }
 
 public OnPlayerDisconnect(playerid, reason)
@@ -199,7 +203,7 @@ public OnPlayerSpawn(playerid)
 {
 	if (GetPVarInt(playerid, "logged") == 0)
 	{
-		SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ââåäèòå ïàðîëü, ÷òî àâòîðèçîâàòüñÿ íà ñåðâåðå.");
+		SCM(playerid, COLOR_RED, "[ОШИБКА] {FFFFFF}Aaaaeoa ia?ieu, ?oi aaoi?eciaaouny ia na?aa?a.");
 		return Kick(playerid);
 	}
 
@@ -228,7 +232,7 @@ public OnPlayerText(playerid, text[])
 {
 	if (GetPVarInt(playerid, "logged") == 0)
 	{
-		SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}×òîáû ââåñòè ñîîáùåíèå íóæíî àâòîðèçîâàòüñÿ íà ñåðâåðå.");
+		SCM(playerid, COLOR_RED, "[ОШИБКА] {FFFFFF}?oiau aaanoe niiauaiea io?ii aaoi?eciaaouny ia na?aa?a.");
 		return Kick(playerid);
 	}
 
@@ -248,7 +252,7 @@ public OnPlayerText(playerid, text[])
 
 	else
 	{
-	    SCM(playerid, COLOR_GREY, "[ÎØÈÁÊÀ] {FFFFFF}Ñîîáùåíèå ñëèøêîì äëèííîå");
+	    SCM(playerid, COLOR_GREY, "[ОШИБКА] {FFFFFF}Niiauaiea neeoeii aeeiiia");
 	}
 
 	return 0;
@@ -421,7 +425,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				if (!strlen(inputtext))
 	            {
 	                ShowLogin(playerid);
-	                return SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ââåäèòå ïàðîëü â ïîëå íèæå è íàæìèòå \"Âîéòè\".");
+	                return SCM(playerid, COLOR_RED, "[ОШИБКА] {FFFFFF}Введите пароль в всплывающем окне и нажмите \"Далее\".");
 				}
 
 				if (strcmp(player_info[playerid][PASSWORD], inputtext) == 0)
@@ -431,7 +435,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
  					format(query, sizeof(query), fmt_query, player_info[playerid][NAME], player_info[playerid][PASSWORD]);
  					mysql_tquery(dbHandle, query, "PlayerLogin", "i", playerid);
 
-                    // SCM(playerid, COLOR_GREEN, "[ÂÅÐÍÎ] {FFFFFF}Ïàðîëü óñïåøíî ââåäåí.");
+                    // SCM(playerid, COLOR_GREEN, "[AA?II] {FFFFFF}Ia?ieu oniaoii aaaaai.");
 				}
 
 				else
@@ -440,13 +444,13 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					SetPVarInt(playerid, "WrongPassword", GetPVarInt(playerid, "WrongPassword") - 1);
 					if (GetPVarInt(playerid, "WrongPassword") > 0)
 					{
-						format(string, sizeof(string), "[ÎØÈÁÊÀ] {FFFFFF}Ïàðîëü íå âåðåí. Ó âàñ îñòàëîñü %i ïîïûòê(è/à), ÷òîáû âîéòè íà ñåðâåð.", GetPVarInt(playerid, "WrongPassword"));
+						format(string, sizeof(string), "[ОШИБКА] {FFFFFF}Невырный ввод паоля. У вас осталось %i попыт(ок/ки), чтобы ввести пароль.", GetPVarInt(playerid, "WrongPassword"));
 						SCM(playerid, COLOR_RED, string);
 					}
 
 					else
 					{
-                        SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ó âàñ çàêîí÷èëèñü ïîïûòêè äëÿ âõîäà íà ñåðâåð è áûëè îò íåãî îòêëëþ÷åíû.");
+                        SCM(playerid, COLOR_RED, "[ОШИБКА] {FFFFFF}O aan caeii?eeenu iiiuoee aey aoiaa ia na?aa? e auee io iaai ioeee??aiu.");
                         Kick(playerid);
 					}
 
@@ -456,7 +460,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 			else
 			{
-				SCM(playerid, COLOR_RED, "Ââåäèòå \"/q\", ÷òîáû âûéòè");
+				SCM(playerid, COLOR_RED, "Используйте \"/q\", чтобы выйти.");
 				SPD(playerid, -1, 0, " ", " ", " ", " ");
 				return Kick(playerid);
 			}
@@ -469,13 +473,13 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	            if (!strlen(inputtext))
 	            {
 	                ShowRegistration(playerid);
-	                return SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ââåäèòå ïàðîëü â ïîëå íèæå è íàæìèòå \"Äàëåå\"");
+	                return SCM(playerid, COLOR_RED, "[ОШИБКА] {FFFFFF}Введите пароль всплывающем окне и нажмите \"Далее\".");
 				}
 
 				if (!(8 <= strlen(inputtext) <= 32))
 				{
 				    ShowRegistration(playerid);
-	                return SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Äëèíà ïàðîëÿ äîëæíà áûòü îò 8 äî 32 ñèìâîëîâ");
+	                return SCM(playerid, COLOR_RED, "[ОШИБКА] {FFFFFF}Пароль должен содержать от 8 до 32 символов.");
 				}
 
     			new regex:rg_passwordcheck = regex_new("^[a-zA-Z0-9.-_,]{1,}$");
@@ -489,10 +493,10 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 					strmid(player_info[playerid][PASSWORD], inputtext, 0, strlen(inputtext), 65);
 					SPD(playerid, DLG_REGEMAIL, DIALOG_STYLE_INPUT,
-						"{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Ââîä Email •••",
-						"Ïðè óòåðå ïàðîëÿ îò àêêàóíòà, âû ñìîæèòå âîññòàíîâèòü åãî ÷åðåç Email\n\
-						Ââåäèòå email â ïîëå íèæå è íàæìèòå \"Äàëåå\"",
-						"Äàëåå",
+						"{ffd100}Регистрация{FFFFFF} ••• Ввод • Email •••",
+						"Введи существующий Email для того, чтобы при утери вами пароля вы смогли его восстановить.\n\
+						Введи email в поле ниже и нажмите \"Далее\"",
+						"Далее",
 						"");
 				}
 
@@ -500,14 +504,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 				    ShowRegistration(playerid);
 				    regex_delete(rg_passwordcheck);
-				    return SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ïàðîëü äîëæåí ñîäåðæàòü òîëüêî ëàòèíñêèå ñèìâîëû è öèôðû");
+				    return SCM(playerid, COLOR_RED, "[ОШИБКА] {FFFFFF}Пароль может состоять только из цифр и латинских символов.");
 				}
 				regex_delete(rg_passwordcheck);
 			}
 
 			else
 			{
-				SCM(playerid, COLOR_RED, "Ââåäèòå \"/q\", ÷òîáû âûéòè");
+				SCM(playerid, COLOR_RED, "Используйте \"/q\", чтобы выйти.");
 				SPD(playerid, -1, 0, " ", " ", " ", " ");
 				return Kick(playerid);
 			}
@@ -518,39 +522,39 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 			if (!strlen(inputtext))
 			{
-			    SPD(playerid, DLG_REGEMAIL, DIALOG_STYLE_INPUT,
-					"{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Ââîä • Email •••",
-					"Ïðè óòåðå ïàðîëÿ îò àêêàóíòà, âû ñìîæèòå âîññòàíîâèòü åãî ÷åðåç Email\n\
-					Ââåäèòå email â ïîëå íèæå è íàæìèòå \"Äàëåå\"",
-					"Äàëåå",
+				SPD(playerid, DLG_REGEMAIL, DIALOG_STYLE_INPUT,
+					"{ffd100}Регистрация{FFFFFF} ••• Ввод • Email •••",
+					"Введи существующий Email для того, чтобы при утери вами пароля вы смогли его восстановить.\n\
+					Введи email в поле ниже и нажмите \"Далее\"",
+					"Далее",
 					"");
-                return SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ââåäèòå email â ïîëå íèæå è íàæìèòå \"Äàëåå\"");
+                return SCM(playerid, COLOR_RED, "[ОШИБКА] {FFFFFF}Введите email всплывающем окне и нажмите \"Далее\"");
 			}
 
 			new regex:rg_emailcheck = regex_new("^[a-zA-Z0-9.-]{1,}@[a-zA-Z]{1,}.[a-zA-Z]{1,5}$");
 			if (regex_check(inputtext, rg_emailcheck))
 			{
 			    strmid(player_info[playerid][EMAIL], inputtext, 0, strlen(inputtext), 64);
-			    SPD(playerid, DLG_REGREF, DIALOG_STYLE_INPUT,
-					"{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Ââîä • Ðåôåðàëüíàÿ ñèñòåìà •••",
-					"Èñïîëüçóéòå íèêíåéì, êîòîðûé âàñ ïðèãðàñèë íà ñåðâåð\n\
-					Ââåäèòå íèêíåéì â ïîëå íèæå è íàæìèòå \"Äàëåå\"\n\n\
-					{0089ff}Ïðèìå÷àíèå:{FFFFFF}\n\
-					• Íèêíåéì èìååò ñëåäóþùèé âèä - Egor_Egorov",
-					"Äàëåå",
-					"Ïðîïóñòèòü");
+				SPD(playerid, DLG_REGREF, DIALOG_STYLE_INPUT,
+					"{ffd100}Регистрация{FFFFFF} ••• Ввод • Реферальная система •••",
+					"Введите никнейм игрока, который вас пригласил на сервер\
+					 и нажмите \"Далее\"\n\n\
+					{0089ff}Примечание:{FFFFFF}\n\
+					• Пример как должен выглядить никнейм - Egor_Egorov",
+					"Далее",
+					"Пропустить");
 			}
 
 			else
 			{
-			    SPD(playerid, DLG_REGEMAIL, DIALOG_STYLE_INPUT,
-					"{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Ââîä • Email •••",
-					"Ïðè óòåðå ïàðîëÿ îò àêêàóíòà, âû ñìîæèòå âîññòàíîâèòü åãî ÷åðåç Email\n\
-					Ââåäèòå email â ïîëå íèæå è íàæìèòå \"Äàëåå\"",
-					"Äàëåå",
+				SPD(playerid, DLG_REGEMAIL, DIALOG_STYLE_INPUT,
+					"{ffd100}Регистрация{FFFFFF} ••• Ввод • Email •••",
+					"Введи существующий Email для того, чтобы при утери вами пароля вы смогли его восстановить.\n\
+					Введи email в поле ниже и нажмите \"Далее\"",
+					"Далее",
 					"");
                 regex_delete(rg_emailcheck);
-				return SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ââåäèòå email êîððåêòíî");
+				return SCM(playerid, COLOR_RED, "[ОШИБКА] {FFFFFF}Введите email адрес верно.");
 			}
 			regex_delete(rg_emailcheck);
 		}
@@ -562,14 +566,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				if (!strlen(inputtext))
 				{
 					SPD(playerid, DLG_REGREF, DIALOG_STYLE_INPUT,
-						"{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Ââîä • Ðåôåðàëüíàÿ ñèñòåìà •••",
-						"Èñïîëüçóéòå íèêíåéì, êîòîðûé âàñ ïðèãðàñèë íà ñåðâåð\n\
-						Ââåäèòå íèêíåéì â ïîëå íèæå è íàæìèòå \"Äàëåå\"\n\n\
-						{0089ff}Ïðèìå÷àíèå:{FFFFFF}\n\
-						   • Íèêíåéì èìååò ñëåäóþùèé âèä - Egor_Egorov",
-						"Äàëåå",
-						"Ïðîïóñòèòü");
-					return SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ââåäèòå íèêíåéì, ïðãèãëàñèâøåãî âàñ èãðîêà â ïîëå íèæå è íàæìèòå \"Äàëåå\"");
+						"{ffd100}Регистрация{FFFFFF} ••• Ввод • Реферальная система •••",
+						"Введите никнейм игрока, который вас пригласил на сервер\
+						 и нажмите \"Далее\"\n\n\
+						{0089ff}Примечание:{FFFFFF}\n\
+						• Пример как должен выглядить никнейм - Egor_Egorov",
+						"Далее",
+						"Пропустить");
+					return SCM(playerid, COLOR_RED, "[ОШИБКА] {FFFFFF}Введи в всплывающем окне никнейм и нажмите \"Далее\"");
 				}
 
 				new regex:rg_referalcheck = regex_new("^[a-zA-Z_]{2,24}$");
@@ -583,16 +587,15 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 				else
 				{
-				    SPD(playerid, DLG_REGREF, DIALOG_STYLE_INPUT,
-						"{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Ââîä • Ðåôåðàëüíàÿ ñèñòåìà •••",
-						"Èñïîëüçóéòå íèêíåéì, êîòîðûé âàñ ïðèãðàñèë íà ñåðâåð\n\
-						Ââåäèòå íèêíåéì â ïîëå íèæå è íàæìèòå \"Äàëåå\"\n\n\
-						{0089ff}Ïðèìå÷àíèå:{FFFFFF}\n\
-						   • Íèêíåéì èìååò ñëåäóþùèé âèä - Egor_Egorov",
-						"Äàëåå",
-						"Ïðîïóñòèòü");
-					regex_delete(rg_referalcheck);
-					return SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Äàííîãî íèêíåéìà íå ñóùåñòâóåò, ëèáî ââåäèòå åãî êîððåêòíî");
+					SPD(playerid, DLG_REGREF, DIALOG_STYLE_INPUT,
+						"{ffd100}Регистрация{FFFFFF} ••• Ввод • Реферальная система •••",
+						"Введите никнейм игрока, который вас пригласил на сервер\
+						 и нажмите \"Далее\"\n\n\
+						{0089ff}Примечание:{FFFFFF}\n\
+						• Пример как должен выглядить никнейм - Egor_Egorov",
+						"Далее",
+						"Пропустить");
+					return SCM(playerid, COLOR_RED, "[ОШИБКА] {FFFFFF}Введите никнейм корректно.");
 				}
 				regex_delete(rg_referalcheck);
 			}
@@ -600,10 +603,10 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			else
 			{
 				SPD(playerid, DLG_SEX, DIALOG_STYLE_MSGBOX,
-				"{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Âûáîð ïîëà ïåðñîíàæà •••",
-				"Âûáåðèòå ïîë äëÿ âàøåãî ïåðñîíàæà",
-				"Ìóæùèíà",
-				"Æåíùèíà"
+				"{ffd100}Регистрация{FFFFFF} ••• Выбор пола •••",
+				"Выберите пол персонажа",
+				"Мужчина",
+				"Женщина"
 				);
 			}
 		}
@@ -617,18 +620,18 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			if (player_info[playerid][SEX] == 1)
 			{
 			    SPD(playerid, DLG_SKIN, DIALOG_STYLE_LIST,
-			        "{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Ââîä • Âûáîð îäåæäû •••",
+			        "{ffd100}Регистрация{FFFFFF} ••• Ввод • Выбор одежды •••",
 			        "78\n79\n134\n135\n137\n160\n212\n230",
-					"Äàëåå",
+					"Далее",
 					""
 				);
 			}
 			else
 			{
 				SPD(playerid, DLG_SKIN, DIALOG_STYLE_LIST,
-					"{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Ââîä • Âûáîð îäåæäû •••",
+					"{ffd100}Регистрация{FFFFFF} ••• Ввод • Выбор одежды •••",
 			        "13\n41\n56\n65\n190\n192\n193\n195",
-					"Äàëåå",
+					"Далее",
 					""
 				);
 			}
@@ -724,24 +727,24 @@ public CheckReferal(playerid, referal[])
 		new referalid;
 		cache_get_value_name_int(0, "id", referalid);
 		player_info[playerid][REF] = referalid;
-        SPD(playerid, DLG_SEX, DIALOG_STYLE_MSGBOX,
-			"{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Âûáîð ïîëà ïåðñîíàæà •••",
-			"Âûáåðèòå ïîë äëÿ âàøåãî ïåðñîíàæà",
-			"Ìóæùèíà",
-			"Æåíùèíà"
+		SPD(playerid, DLG_SEX, DIALOG_STYLE_MSGBOX,
+			"{ffd100}Регистрация{FFFFFF} ••• Выбор пола •••",
+			"Выберите пол персонажа",
+			"Мужчина",
+			"Женщина"
 			);
 	}
 	else
 	{
-        SPD(playerid, DLG_REGREF, DIALOG_STYLE_INPUT,
-			"{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Ââîä • Ðåôåðàëüíàÿ ñèñòåìà •••",
-			"Èñïîëüçóéòå íèêíåéì, êîòîðûé âàñ ïðèãðàñèë íà ñåðâåð\n\
-			Ââåäèòå íèêíåéì â ïîëå íèæå è íàæìèòå \"Äàëåå\"\n\n\
-			{0089ff}Ïðèìå÷àíèå:{FFFFFF}\n\
- 			• Íèêíåéì èìååò ñëåäóþùèé âèä - Egor_Egorov",
-			"Äàëåå",
-			"Ïðîïóñòèòü");
-		return SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Äàííîãî àêêàóíòà ñ òàêèì íèêíåéìîì íå ñóùåñòâóåò");
+		SPD(playerid, DLG_REGREF, DIALOG_STYLE_INPUT,
+			"{ffd100}Регистрация{FFFFFF} ••• Ввод • Реферальная система •••",
+			"Введите никнейм игрока, который вас пригласил на сервер\
+			 и нажмите \"Далее\"\n\n\
+			{0089ff}Примечание:{FFFFFF}\n\
+			• Пример как должен выглядить никнейм - Egor_Egorov",
+			"Далее",
+			"Пропустить");
+		return SCM(playerid, COLOR_RED, "[ОШИБКА] {FFFFFF}Введите никнейм корректно.");
 	}
 
 	return 1;
@@ -764,10 +767,7 @@ public OnPlayerClickMap(playerid, Float:fX, Float:fY, Float:fZ)
 			PutPlayerInVehicle(playerid, GetPlayerVehicleID(playerid), 0);
 		}
 
-		else
-		{
-			SetPlayerPos(playerid, fX, fY, fZ);
-		}
+		else SetPlayerPos(playerid, fX, fY, fZ);
 
 		SetPlayerVirtualWorld(playerid, 0);
 		SetPlayerInterior(playerid, 0);
@@ -817,31 +817,31 @@ CMD:makeadminonline(playerid, params[])
 		new id, level;
 		if (sscanf(params, "ui", id, level))
 		{
-			SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /makeadminonline [id] [level]");
+			SCM(playerid, COLOR_GREY, "Используйте /makeadminonline [id] [level]");
 		}
 
 		else
 		{
-			if (!IsPlayerConnected(id)) SCM(playerid, COLOR_GREY, "Äàííûé èãðîê íå â ñåòè.");
+			if (!IsPlayerConnected(id)) SCM(playerid, COLOR_GREY, "Игрок отсутствует на сервере.");
 
 			else
 			{
 				if (player_info[playerid][ADMIN] == 5 && level > 1)
 	   			{
-	   				SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ó âàñ íåäîñòàòî÷íî ïðàâ, ÷òîáû âûäàòü óðîâåíü âûøå 1-ãî.");
+	   				SCM(playerid, COLOR_RED, "[ОШИБКА] {FFFFFF}У вас недостаточной прав, чтобы выдать выше 1-го уровня.");
 				}
 
 				else if (player_info[playerid][ADMIN] == 6 && level > 4)
 				{
-					SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ó âàñ íåäîñòàòî÷íî ïðàâ, ÷òîáû âûäàòü óðîâåíü âûøå 5-ãî.");
+					SCM(playerid, COLOR_RED, "[ОШИБКА] {FFFFFF}У вас недостаточной прав, чтобы выдать выше 4-го уровня.");
 				}
 
 				else
 				{
 					new string[100];
 					new string2[100];
-					format(string, sizeof(string), "Àäìèíèñòðàòîð %s âûäàë âàì àäìèíèñòðàòèâíûå ïðàâà %i óðîâíÿ", player_info[playerid][NAME], level);
-					format(string2, sizeof(string2), "Âû âûäàëè %s àäìèíèñòðàòèâíûå ïðàâà %i óðîâíÿ", player_info[id][NAME], level);
+					format(string, sizeof(string), "Администратор %s выдал вам административные права %i уроня", player_info[playerid][NAME], level);
+					format(string2, sizeof(string2), "Вы выдали игроку %s административные права %i уровня", player_info[id][NAME], level);
 					SCM(playerid, COLOR_YELLOW, string2);
 					SCM(id, COLOR_YELLOW, string);
 
@@ -867,29 +867,29 @@ CMD:makeadminoffline(playerid, params[])
 		new name[MAX_PLAYER_NAME], level;
 		if (sscanf(params, "s[MAX_PLAYER_NAME]i", name, level))
 		{
-			SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /makeadminoffline [nickname] [level]");
+			SCM(playerid, COLOR_GREY, "Используйте /makeadminoffline [nickname] [level]");
 		}
 
 		else
 		{
-			if (!strlen(name)) SCM(playerid, COLOR_GREY, "Ââåäèòå íèêíåéì êîððåêòíî.");
+			if (!strlen(name)) SCM(playerid, COLOR_GREY, "Введите никнейм.");
 
 			else
 			{
 	   			if (player_info[playerid][ADMIN] == 5 && level > 1)
 	   			{
-	   				SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ó âàñ íåäîñòàòî÷íî ïðàâ, ÷òîáû âûäàòü óðîâåíü âûøå 1-ãî.");
+	   				SCM(playerid, COLOR_RED, "[ОШИБКА] {FFFFFF}У вас недостаточной прав, чтобы выдать выше 1-го уровня.");
 				}
 
 				else if (player_info[playerid][ADMIN] == 6 && level > 4)
 				{
-					SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ó âàñ íåäîñòàòî÷íî ïðàâ, ÷òîáû âûäàòü óðîâåíü âûøå 5-ãî.");
+					SCM(playerid, COLOR_RED, "[ОШИБКА] {FFFFFF}У вас недостаточной прав, чтобы выдать выше 4-го уровня.");
 				}
 
 				else
 				{
 					new string[100];
-					format(string, sizeof(string), "Âû âûäàëè îôôëàéí %s àäìèíèñòðàòèâíûå ïðàâà %i óðîâíÿ", name, level);
+					format(string, sizeof(string), "Вы выдали игроку %s административные права %i уровня", name, level);
 					SCM(playerid, COLOR_YELLOW, string);
 
 					static const fmt_query[] = "UPDATE users SET admin = '%i' WHERE name = '%s'";
@@ -913,21 +913,21 @@ CMD:kick(playerid, params[])
 	    new id, condition[64];
 		if (sscanf(params, "us[64]", id, condition))
 		{
-			SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /kick [id] [condition]");
+			SCM(playerid, COLOR_GREY, "Используйте /kick [id] [condition]");
 		}
 
 		else
 		{
 			if (IsPlayerConnected(id))
 			{
-				if (!strlen(condition)) SCM(playerid, COLOR_GREY, "Ââåäèòå ïðè÷èíó.");
+				if (!strlen(condition)) SCM(playerid, COLOR_GREY, "Введите причину.");
 
 				else
 				{
 					new string[100];
 					new string2[100];
-					format(string, sizeof(string), "Àäìèíèñòðàòîð %s êèêíóë âàñ c ñåðâåðà. Ïðè÷èíà: %s", player_info[playerid][NAME], condition);
-					format(string2, sizeof(string2), "Àäìèíèñòðàòîð %s êèêíóë èãðîêà %s. Ïðè÷èíà: %s", player_info[playerid][NAME], player_info[id][NAME], condition);
+					format(string, sizeof(string), "Администратор %s кикнул вас с сервера. Причина: %s", player_info[playerid][NAME], condition);
+					format(string2, sizeof(string2), "Администратор %s кикнул игрока %s. Причина: %s", player_info[playerid][NAME], player_info[id][NAME], condition);
                     SCMTA(COLOR_RED2, string2);
 					SCM(id, COLOR_RED, string);
 					Kick(id);
@@ -946,12 +946,12 @@ CMD:setskin(playerid, params[])
 	{
 		if (sscanf(params, "ii", params[0], params[1]))
 		{
-			SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /setskin [id player] [id skin]");
+			SCM(playerid, COLOR_GREY, "Используйте /setskin [id player] [id skin]");
 		}
 
 		else
 		{
-			if (!(0 <= params[1] <= 311)) SCM(playerid, COLOR_GREY, "Ââåäèòå êîððåêòíûé ID îäåæäû îò 0 äî 311.");
+			if (!(0 <= params[1] <= 311)) SCM(playerid, COLOR_GREY, "Введите корректный ID скина от 0 до 311.");
 			else
 			{
 				SetPlayerSkin(playerid, params[1]);
@@ -972,7 +972,7 @@ CMD:setskin(playerid, params[])
 // 	{
 // 		if (sscanf(params, "ii", params[0], params[1]))
 // 		{
-// 			SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /makeleader [id player] [id fraction]");
+// 			SCM(playerid, COLOR_GREY, "Используйте /makeleader [id player] [id fraction]");
 // 		}
 
 // 		else
@@ -1006,7 +1006,7 @@ stock Distance(Float: x, Float: y, Float: z, Float: fx, Float:fy, Float: fz)
 
 CMD:givemoney(playerid, params[])
 {
-	if (sscanf(params, "ui", params[0], params[1])) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /givemoney [id player] [value]");
+	if (sscanf(params, "ui", params[0], params[1])) SCM(playerid, COLOR_GREY, "Используйте /givemoney [id player] [value]");
 	else
 	{
 		if (IsPlayerConnected(params[0]))
@@ -1017,14 +1017,14 @@ CMD:givemoney(playerid, params[])
 				GetPlayerPos(playerid, x, y, z);
 				GetPlayerPos(params[0], fx, fy, fz);
 
-				if (!(1 <= params[1] <= 5000)) SCM(playerid, COLOR_GREY, "Value of money is no more 5000 rubels");
-				else if (playerid == params[0]) SCM(playerid, COLOR_GREY, "You can't give money to yourself");
-				else if (Distance(x, y, z, fx, fy, fz) > 4) SCM(playerid, COLOR_GREY, "You are too far away from the player");
+				if (!(1 <= params[1] <= 5000)) SCM(playerid, COLOR_GREY, "Значение не может быть меньше 1 и больше 5000 рублей.");
+				else if (playerid == params[0]) SCM(playerid, COLOR_GREY, "Вы не можете передавать деньги самому себе.");
+				else if (Distance(x, y, z, fx, fy, fz) > 4) SCM(playerid, COLOR_GREY, "Вы находитесь слишком далеко от игрока.");
 				else
 				{
 					new string[100], string2[100];
-					format(string, sizeof(string), "You give %s %i rubels", player_info[params[0]][NAME], params[1]);
-					format(string2, sizeof(string2), "%s give you %i rubels", player_info[playerid][NAME], params[1]);
+					format(string, sizeof(string), "Вы передали утроку %s %i рублей", player_info[params[0]][NAME], params[1]);
+					format(string2, sizeof(string2), "Игрок %s дал вам %i рублей", player_info[playerid][NAME], params[1]);
 					SCM(playerid, COLOR_BLUE, string);
 					SCM(params[0], COLOR_BLUE, string2);
 
@@ -1041,8 +1041,8 @@ CMD:givemoney(playerid, params[])
 			else
 			{
 				new string[100], string2[100];
-				format(string, sizeof(string), "You give player %s %i rubels", player_info[params[0]][NAME], params[1]);
-				format(string2, sizeof(string2), "Administration %s give you %i rubels", player_info[playerid][NAME], params[1]);
+				format(string, sizeof(string), "Вы передали утроку %s %i рублей", player_info[params[0]][NAME], params[1]);
+				format(string2, sizeof(string2), "Администратор %s выдал вам %i рублей", player_info[playerid][NAME], params[1]);
 				SCM(playerid, COLOR_BLUE, string);
 				SCM(params[0], COLOR_BLUE, string2);
 
@@ -1055,7 +1055,7 @@ CMD:givemoney(playerid, params[])
 			}
 		}
 
-		else SCM(playerid, COLOR_GREY, "Player not in server");
+		else SCM(playerid, COLOR_GREY, "Данного игрока нет на сервере.");
 	}
 
 	return 1;
@@ -1067,12 +1067,12 @@ CMD:setveh(playerid, params[])
 	if (player_info[playerid][ADMIN] >= 2)
 	{
 		new id;
-		if (sscanf(params, "i", id)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /setveh [id car]");
+		if (sscanf(params, "i", id)) SCM(playerid, COLOR_GREY, "Используйте /setveh [id car]");
 		else
 		{
-			if (!(400 <= id <= 611)) SCM(playerid, COLOR_GREY, "Ââåäèòå êîððåêòíûé ID îäåæäû îò 400 äî 611.");
+			if (!(400 <= id <= 611)) SCM(playerid, COLOR_GREY, "Введите корректный ID скина от 400 до 611.");
 			else
-			{	
+			{
 				new x, y, z;
 				GetPlayerPos(playerid, Float:x, Float:y, Float:z);
 				CreateVehicle(id, Float:x + 2, Float:y + 2, Float:z, 0, 0, 0, -1);
