@@ -62,6 +62,7 @@ enum player
 	FRACTION,
 	RANK,
 	NAME_RANK,
+	WARN,
 };
 new player_info[MAX_PLAYERS][player];
 
@@ -74,6 +75,8 @@ enum dialogs
 	DLG_REGREF,
 	DLG_SEX,
 	DLG_SKIN,
+	DLG_MENU,
+	DLG_STAT,
 };
 
 public OnGameModeInit()
@@ -675,6 +678,39 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			// new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME) + (-2 + 64)];
  			format(query, sizeof(query), fmt_query2, player_info[playerid][NAME], player_info[playerid][PASSWORD]);
  			mysql_tquery(dbHandle, query, "PlayerLogin", "i", playerid);
+		}
+		
+		case DLG_MENU:
+		{
+			if (response)
+			{
+				if (listitem == 0)
+				{
+                    SPD(playerid, DLG_STAT, DIALOG_STYLE_MSGBOX, "Статистика", "1", "Назад", "Выход");
+				}
+			}
+
+			else
+			{
+
+			}
+		}
+
+		case DLG_STAT:
+		{
+			if (response)
+			{
+				SPD(playerid, DLG_MENU, DIALOG_STYLE_LIST,
+					"Меню",
+					"1. Статистика",
+					"Выбрать",
+					"Выход");
+			}
+
+			else
+			{
+
+			}
 		}
 	}
 
@@ -1448,7 +1484,7 @@ CMD:slap(playerid, params[])
 CMD:clear(playerid, params[])
 {
 	for (new i = 0; i < 40; ++ i) SCM(playerid, COLOR_WHITE, "");
-	SCM(playerid, COLOR_YELLOW, "Au i?enoeee naaa ?ao.");
+	SCM(playerid, COLOR_YELLOW, "Вы очистили себе чат.");
 	return 1;
 }
 
