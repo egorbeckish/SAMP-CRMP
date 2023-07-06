@@ -901,40 +901,27 @@ stock ProxDetector(Float:radi, playerid, string[], col1, col2, col3, col4, col5)
 	return 1;
 }
 
-CMD:makeadminonline(playerid, params[])
+CMD:makeadmin(playerid, params[])
 {
 	if (player_info[playerid][ADMIN] >= 5)
 	{
 		new id, level;
-		if (sscanf(params, "ui", id, level))
-		{
-			SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /makeadminonline [id] [level]");
-		}
-
+		if (sscanf(params, "ui", id, level)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /makeadmin [id] [level]");
 		else
 		{
 			if (!IsPlayerConnected(id)) SCM(playerid, COLOR_GREY, "Èãðîê îòñóòñòâóåò íà ñåðâåðå.");
 
 			else
 			{
-				if (player_info[playerid][ADMIN] == 5 && level > 1)
-	   			{
-	   				SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ó âàñ íåäîñòàòî÷íîé ïðàâ, ÷òîáû âûäàòü âûøå 1-ãî óðîâíÿ.");
-				}
-
-				else if (player_info[playerid][ADMIN] == 6 && level > 4)
-				{
-					SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ó âàñ íåäîñòàòî÷íîé ïðàâ, ÷òîáû âûäàòü âûøå 4-ãî óðîâíÿ.");
-				}
-
+				if (player_info[playerid][ADMIN] == 5 && level > 1) SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ó âàñ íåäîñòàòî÷íîé ïðàâ, ÷òîáû âûäàòü âûøå 1-ãî óðîâíÿ.");
+				else if (player_info[playerid][ADMIN] == 6 && level > 4) SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ó âàñ íåäîñòàòî÷íîé ïðàâ, ÷òîáû âûäàòü âûøå 4-ãî óðîâíÿ.");
 				else
 				{
 					new string[100];
-					new string2[100];
-					format(string, sizeof(string), "Àäìèíèñòðàòîð %s âûäàë âàì àäìèíèñòðàòèâíûå ïðàâà %i óðîíÿ", player_info[playerid][NAME], level);
-					format(string2, sizeof(string2), "Âû âûäàëè èãðîêó %s àäìèíèñòðàòèâíûå ïðàâà %i óðîâíÿ", player_info[id][NAME], level);
-					SCM(playerid, COLOR_YELLOW, string2);
+					format(string, sizeof(string), "Àäìèíèñòðàòîð %s âûäàë âàì àäìèíèñòðàòèâíûå ïðàâà %i óðîâíÿ.", player_info[playerid][NAME], level);
 					SCM(id, COLOR_YELLOW, string);
+					format(string, sizeof(string), "Âû âûäàëè èãðîêó %s àäìèíèñòðàòèâíûå ïðàâà %i óðîâíÿ.", player_info[id][NAME], level);
+					SCM(playerid, COLOR_YELLOW, string);
 
 					static const fmt_query[] = "UPDATE users SET admin = '%i' WHERE name = '%s'";
 					new query[sizeof(fmt_query) + (-2 + 4) + (-2 + MAX_PLAYER_NAME)];
@@ -950,43 +937,53 @@ CMD:makeadminonline(playerid, params[])
 
 
 
-CMD:makeadminoffline(playerid, params[])
+CMD:makeadminoff(playerid, params[])
 {
 
 	if (player_info[playerid][ADMIN] >= 5)
 	{
-		new name[MAX_PLAYER_NAME], level;
-		if (sscanf(params, "s[MAX_PLAYER_NAME]i", name, level))
-		{
-			SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /makeadminoffline [nickname] [level]");
-		}
-
+		extract params -> new string:name[64], string:level[2];
+		if (!strlen(name) && !strlen(level)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /makeadminoff [nickname] [level]");
 		else
 		{
-			if (!strlen(name)) SCM(playerid, COLOR_GREY, "Ââåäèòå íèêíåéì.");
+			static const fmt_query[] = "SELECT * FROM users WHERE name = '%s'";
+			new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME)];
+			format(query, sizeof(query), fmt_query, name);
+			mysql_query(dbHandle, query);
 
+			new rows;
+			cache_get_row_count(rows);
+			if (!rows) SCM(playerid, COLOR_GREY, "Äàííîãî àêêàóíòà íå ñóùåñòâóåò.");
 			else
 			{
-	   			if (player_info[playerid][ADMIN] == 5 && level > 1)
-	   			{
-	   				SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ó âàñ íåäîñòàòî÷íîé ïðàâ, ÷òîáû âûäàòü âûøå 1-ãî óðîâíÿ.");
-				}
-
-				else if (player_info[playerid][ADMIN] == 6 && level > 4)
-				{
-					SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ó âàñ íåäîñòàòî÷íîé ïðàâ, ÷òîáû âûäàòü âûøå 4-ãî óðîâíÿ.");
-				}
-
+				if (!strlen(level)) SCM(playerid, COLOR_GREY, "Ââåäèòå âûäàâàåìûé óðîâåíü.");
 				else
 				{
-					new string[100];
-					format(string, sizeof(string), "Âû âûäàëè èãðîêó %s àäìèíèñòðàòèâíûå ïðàâà %i óðîâíÿ", name, level);
-					SCM(playerid, COLOR_YELLOW, string);
+					if (strval(level) < 1) SCM(playerid, COLOR_GREY, "Óðîâåíü äîëæåí áûòü âûøå 0.");
+					else
+					{
+			   			if (player_info[playerid][ADMIN] == 5 && strval(level) > 1)
+			   			{
+			   				SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ó âàñ íåäîñòàòî÷íîé ïðàâ, ÷òîáû âûäàòü âûøå 1-ãî óðîâíÿ.");
+						}
 
-					static const fmt_query[] = "UPDATE users SET admin = '%i' WHERE name = '%s'";
-					new query[sizeof(fmt_query) + (-2 + 4) + (-2 + MAX_PLAYER_NAME)];
- 					format(query, sizeof(query), fmt_query, level, name);
- 					mysql_tquery(dbHandle, query);
+						else if (player_info[playerid][ADMIN] == 6 && strval(level) > 4)
+						{
+							SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ó âàñ íåäîñòàòî÷íîé ïðàâ, ÷òîáû âûäàòü âûøå 4-ãî óðîâíÿ.");
+						}
+
+						else
+						{
+							new string[100];
+							format(string, sizeof(string), "Âû âûäàëè èãðîêó %s àäìèíèñòðàòèâíûå ïðàâà %i óðîâíÿ.", name, strval(level));
+							SCM(playerid, COLOR_YELLOW, string);
+
+							static const fmt_query2[] = "UPDATE users SET admin = '%i' WHERE name = '%s'";
+							new query2[sizeof(fmt_query2) + (-2 + 4) + (-2 + MAX_PLAYER_NAME)];
+		 					format(query2, sizeof(query2), fmt_query2, strval(level), name);
+		 					mysql_tquery(dbHandle, query2);
+						}
+					}
 				}
 			}
 		}
@@ -1001,27 +998,22 @@ CMD:kick(playerid, params[])
 {
 	if (player_info[playerid][ADMIN] >= 1)
 	{
-	    new id, condition[64];
-		if (sscanf(params, "us[64]", id, condition))
-		{
-			SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /kick [id] [condition]");
-		}
-
+		extract params -> new string:id[3], string:condition[64];
+		if (!strlen(id) && !strlen(condition)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /kick [id] [condition]");
 		else
 		{
-			if (IsPlayerConnected(id))
+			if (IsPlayerConnected(strval(id)))
 			{
 				if (!strlen(condition)) SCM(playerid, COLOR_GREY, "Ââåäèòå ïðè÷èíó.");
 
 				else
 				{
 					new string[100];
-					new string2[100];
-					format(string, sizeof(string), "Àäìèíèñòðàòîð %s êèêíóë âàñ ñ ñåðâåðà. Ïðè÷èíà: %s", player_info[playerid][NAME], condition);
-					format(string2, sizeof(string2), "Àäìèíèñòðàòîð %s êèêíóë èãðîêà %s. Ïðè÷èíà: %s", player_info[playerid][NAME], player_info[id][NAME], condition);
-                    SCMTA(COLOR_RED2, string2);
-					SCM(id, COLOR_RED, string);
-					Kick(id);
+					format(string, sizeof(string), "Àäìèíèñòðàòîð %s êèêíóë èãðîêà %s. Ïðè÷èíà: %s", player_info[playerid][NAME], player_info[strval(id)][NAME], condition);
+                    SCMTA(COLOR_RED2, string);
+                    format(string, sizeof(string), "Àäìèíèñòðàòîð %s êèêíóë âàñ ñ ñåðâåðà. Ïðè÷èíà: %s", player_info[playerid][NAME], condition);
+					SCM(strval(id), COLOR_RED, string);
+					Kick(strval(id));
 				}
 			}
 		}
@@ -1031,25 +1023,37 @@ CMD:kick(playerid, params[])
 
 
 
-CMD:setskin(playerid, params[])
+CMD:skin(playerid, params[])
 {
 	if (player_info[playerid][ADMIN] >= 2)
 	{
-		if (sscanf(params, "ii", params[0], params[1]))
-		{
-			SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /setskin [id player] [id skin]");
-		}
-
+		extract params -> new string:id[4], string:skin[4];
+		if (!strlen(id) && !strlen(skin)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /skin [id player] [id skin]");
 		else
 		{
-			if (!(0 <= params[1] <= 311)) SCM(playerid, COLOR_GREY, "Ââåäèòå êîððåêòíûé ID ñêèíà îò 0 äî 311.");
+			if (!strlen(skin))
+			{
+				if (!(0 <= strval(id) <= 311)) SCM(playerid, COLOR_GREY, "Ââåäèòå êîððåêòíûé ID ñêèíà îò 0 äî 311.");
+				SetPlayerSkin(playerid, strval(id));
+				static const fmt_query[] = "UPDATE users SET skin = '%i' WHERE name = '%s'";
+				new query[sizeof(fmt_query) + (-2 + 3) + (-2 + MAX_PLAYER_NAME)];
+	 			format(query, sizeof(query), fmt_query, strval(id), player_info[playerid][NAME]);
+	 			mysql_tquery(dbHandle, query);
+			}
+
 			else
 			{
-				SetPlayerSkin(playerid, params[1]);
-				static const fmt_query[] = "UPDATE users SET skin = '%i' WHERE id = '%i'";
-				new query[sizeof(fmt_query) + (-2 + 3) + (-2 + 8)];
- 				format(query, sizeof(query), fmt_query, params[1], player_info[playerid][ID]);
- 				mysql_tquery(dbHandle, query);
+				if (!(0 <= strval(skin) <= 311)) SCM(playerid, COLOR_GREY, "Ââåäèòå êîððåêòíûé ID ñêèíà îò 0 äî 311.");
+				else
+				{
+					new name[MAX_PLAYER_NAME];
+					GetPlayerName(strval(id), name, MAX_PLAYER_NAME);
+					SetPlayerSkin(strval(id), strval(skin));
+					static const fmt_query[] = "UPDATE users SET skin = '%i' WHERE name = '%s'";
+					new query[sizeof(fmt_query) + (-2 + 3) + (-2 + MAX_PLAYER_NAME)];
+	 				format(query, sizeof(query), fmt_query, strval(skin), name);
+	 				mysql_tquery(dbHandle, query);
+				}
 			}
 		}
 	}
@@ -1200,19 +1204,18 @@ CMD:jail(playerid, params[])
 {
 	if (player_info[playerid][ADMIN] >= 2)
 	{
-		if (sscanf(params, "uis[64]", params[0], params[1], params[2]))
-			SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /jail [id] [time] [condition]");
-
+		extract params -> new string:id[4], time, string:condition[64];
+		if (!strlen(id) && time < 1 && !strlen(condition)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /jail [id] [time] [condition]");
 		else
 		{
-			if (!IsPlayerConnected(params[0])) SCM(playerid, COLOR_GREY, "Äàííîãî èãðîêà íåò íà ñåðâåðå.");
-			else if (params[1] < 0) SCM(playerid, COLOR_GREY, "Âðåìÿ äîëæíî áûòü îò 1 óñëîâ. åä..");
+			if (!IsPlayerConnected(strval(id))) SCM(playerid, COLOR_GREY, "Äàííîãî èãðîêà íåò íà ñåðâåðå.");
+			else if (time < 0) SCM(playerid, COLOR_GREY, "Âðåìÿ äîëæíî áûòü îò 1 óñëîâ. åä..");
 			else
 			{
-			    new string[100], string2[100];
+			    new string[100];
+				format(string, sizeof(string), "Àäìèíèñòðàòîð %s ïîñàäèë èãðîêà %s â äåìîðãàí. Ïðè÷èíà: %s", player_info[playerid][NAME], player_info[params[0]][NAME], params[1], params[2]);
+				SCMTA(COLOR_RED2, string);
 				format(string, sizeof(string), "Àäìèíèñòðàòîð %s ïîñàäèë âàñ â äåìîðãàí. Ïðè÷èíà: %s", player_info[playerid][NAME], params[1], params[2]);
-				format(string2, sizeof(string2), "Àäìèíèñòðàòîð %s ïîñàäèë èãðîêà %s â äåìîðãàí. Ïðè÷èíà: %s", player_info[playerid][NAME], player_info[params[0]][NAME], params[1], params[2]);
-				SCMTA(COLOR_RED2, string2);
 				SCM(params[0], COLOR_RED, string);
 
 				new Float:place[12][3] = {
@@ -1301,7 +1304,7 @@ CMD:warn(playerid, params[])
 {
 	if (player_info[playerid][ADMIN] >= 3)
 	{
-		extract params -> new string:id[3], string:condition[64];
+		extract params -> new string:id[4], string:condition[64];
 		if (!strlen(id) && !strlen(condition)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /warn [id] [condition]");
 		else
 		{
@@ -1493,23 +1496,23 @@ CMD:unwarn(playerid, params[])
 {
 	if (player_info[playerid][ADMIN] >= 3)
 	{
-     	new name[MAX_PLAYER_NAME];
-		if (sscanf(params, "s[MAX_PLAYER_NAME]", name)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /unwarn [nick]");
+		extract params -> new string:name[64];
+		if (!strlen(name)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /unwarn [nick]");
 		else
 		{
-			if (!strlen(name)) SCM(playerid, COLOR_GREY, "Ââåäèòå íèêíåéì èãðîêà.");
-			else
-			{
-				static const fmt_query[] = "SELECT * FROM users WHERE name = '%s'";
-				new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME)];
- 				format(query, sizeof(query), fmt_query, name);
- 				mysql_query(dbHandle, query);
+			static const fmt_query[] = "SELECT * FROM users WHERE name = '%s'";
+			new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME)];
+ 			format(query, sizeof(query), fmt_query, name);
+ 			mysql_query(dbHandle, query);
 
- 				new rows, counter;
- 				cache_get_row_count(rows);
- 				if (rows)
- 				{
-					cache_get_value_int(0, "warn", counter);
+ 			new rows, counter;
+ 			cache_get_row_count(rows);
+ 			if (rows)
+ 			{
+				cache_get_value_int(0, "warn", counter);
+				if (counter == 0) SCM(playerid, COLOR_GREY, "Ó äàííîãî àêêàóíòà áîëüøå íåò ïðåäóïðåæäåíèé.");
+				else
+				{
 					counter -= 1;
 					new string[200];
 					format(string, sizeof(string), "Àäìèíèñòðàòîð %s ñíÿë ïðåäóïðåæäåíèå èãðîêó %s [%i/3].",
@@ -1518,12 +1521,12 @@ CMD:unwarn(playerid, params[])
 
 					static const fmt_query2[] = "UPDATE users SET warn = '%i' WHERE name = '%s'";
 					new query2[sizeof(fmt_query2) + (-2 + 1) + (-2 + MAX_PLAYER_NAME)];
- 					format(query2, sizeof(query2), fmt_query2, counter, name);
- 					mysql_tquery(dbHandle, query2);
- 				}
+	 				format(query2, sizeof(query2), fmt_query2, counter, name);
+	 				mysql_tquery(dbHandle, query2);
+	 			}
+ 			}
 
- 				else SCM(playerid, COLOR_RED, "Äàííîãî èãðîêà íå ñóùåñòâóåò.");
-			}
+ 			else SCM(playerid, COLOR_RED, "Äàííîãî èãðîêà íå ñóùåñòâóåò.");
 		}
 	}
 
@@ -1537,7 +1540,7 @@ CMD:hp(playerid, params[])
 {
 	if (player_info[playerid][ADMIN] >= 2)
 	{
-		extract params -> new string:id[3];
+		extract params -> new string:id[4];
 
 		if (!strlen(id))
 		{
@@ -1562,21 +1565,6 @@ CMD:hp(playerid, params[])
 		}
 	}
 
-	// if (player_info[playerid][ADMIN] >= 2)
-	// {
-	// 	new name[MAX_PLAYER_NAME];
-	// 	GetPlayerName(playerid, name, MAX_PLAYER_NAME);
-
-	// 	static const fmt_query[] = "UPDATE users SET health = '%.2f' WHERE name = '%s'";
-	// 	new query[sizeof(fmt_query) + (-2 + 3) + (-2 + MAX_PLAYER_NAME)];
-	//  	format(query, sizeof(query), fmt_query, 100.0, name);
-	//  	mysql_tquery(dbHandle, query);
-
-
-	// 	SetPlayerHealth(playerid, 100.0);
-	// 	SCM(playerid, COLOR_WHITE, "Au auaaee naaa oi.");
-	// }
-
 	return 1;
 }
 
@@ -1586,7 +1574,7 @@ CMD:armour(playerid, params[])
 {
 	if (player_info[playerid][ADMIN] >= 2)
 	{
-		extract params -> new string:id[3];
+		extract params -> new string:id[4];
 
 		if (!strlen(id))
 		{
@@ -1604,27 +1592,7 @@ CMD:armour(playerid, params[])
 			SetPlayerArmour(strval(id), 100.0);
 		}
 	}
-
-
-	// if (player_info[playerid][ADMIN] >= 2)
-	// {
-	// 	if (sscanf(params, "i", params[0])) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /setarmour [id]");
-	// 	else
-	// 	{
-	// 		new name[MAX_PLAYER_NAME];
-	// 		GetPlayerName(params[0], name, MAX_PLAYER_NAME);
-
-	// 		static const fmt_query[] = "UPDATE users SET armour = '%.2f' WHERE name = '%s'";
-	// 		new query[sizeof(fmt_query) + (-2 + 3) + (-2 + MAX_PLAYER_NAME)];
-	//  		format(query, sizeof(query), fmt_query, 100.0, name);
-	//  		mysql_tquery(dbHandle, query);
-
-
-	// 		SetPlayerHealth(params[0], 100.0);
-	// 		SCM(playerid, COLOR_WHITE, "Àäìèíèñòðàòîð iiiieiee aai cai?iaua.");
-	// 	}
-	// }
-
+	
 	return 1;
 }
 
@@ -1647,6 +1615,7 @@ CMD:slap(playerid, params[])
 			}
 		}
 	}
+	
 	return 1;
 }
 
@@ -1668,7 +1637,7 @@ CMD:eject(playerid, params[])
 		if (GetPlayerVehicleSeat(playerid) != 0) SCM(playerid, COLOR_GREY, "Âû ñåäèòå íå íà ìåñòå âîäèòåëÿ.");
 		else
 		{
-			extract params -> new string:id[3];
+			extract params -> new string:id[4];
 			if (!strlen(id)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /eject [id]");
 			else
 			{
@@ -1800,7 +1769,7 @@ CMD:ban(playerid, params[])
 {
 	if (player_info[playerid][ADMIN] >= 3)
 	{
-		extract params -> new string:id[3], days, string:condition[100];
+		extract params -> new string:id[4], days, string:condition[100];
 		if (!strlen(id) && days < 1 && !strlen(condition)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /ban [id] [days] [condition]");
 		else
 		{
