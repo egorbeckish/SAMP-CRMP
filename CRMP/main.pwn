@@ -1416,57 +1416,66 @@ CMD:warnoff(playerid, params[])
  				if (rows)
  				{
 					cache_get_value_int(0, "warn", counter);
+					static const fmt_query5[] = "SELECT * FROM banlist WHERE name = '%s'";
+					new query5[sizeof(fmt_query5) + (-2 + MAX_PLAYER_NAME)];
+ 					format(query5, sizeof(query5), fmt_query5, name);
+ 					mysql_query(dbHandle, query5);
 
-					if (counter < 3)
-					{
-						counter += 1;
-						if (counter == 3)
+ 					cache_get_row_count(rows);
+ 					if (rows) SCM(playerid, COLOR_GREY, "Äàííûé àêêàóíò çàáëîêèðîâàí.");
+ 					else
+ 					{
+						if (counter < 3)
 						{
-							format(string, sizeof(string), "Àäìèíèñòðàòîð %s âûäàë îôôëàéí ïðåäóïðåæäåíèå èãðîêó %s [%i/3]. Ïðè÷èíà: %s",
-															player_info[playerid][NAME], name, counter, condition);
-							SCMTA(COLOR_RED2, string);
-							
-							format(string, sizeof(string), "Àêêàóíò èãðîêà %s àâòîìàòè÷åñêè çàáëîêèðîâàí èç-çà 3-õ ïðåäóïðåæäåíèé íà %i äíåé. Ïðè÷èíà: %s",
-							name, 30, condition);
-							SCMTA(COLOR_RED2, string);
-							
-							new data[16], time[16], unban[16], Day, Month, Year, Second, Minute, Hour;
-							getdate(Year, Month, Day); gettime(Hour, Minute, Second);
-							format(data, sizeof(data), "%02d.%02d.%02d", Day, Month, Year);
-							format(time, sizeof(time), "%02d:%02d:%02d", Hour, Minute, Second);
-							unban = Data(30, Day, Month, Year);
+							counter += 1;
+							if (counter == 3)
+							{
+								format(string, sizeof(string), "Àäìèíèñòðàòîð %s âûäàë îôôëàéí ïðåäóïðåæäåíèå èãðîêó %s [%i/3]. Ïðè÷èíà: %s",
+																player_info[playerid][NAME], name, counter, condition);
+								SCMTA(COLOR_RED2, string);
+								
+								format(string, sizeof(string), "Àêêàóíò èãðîêà %s àâòîìàòè÷åñêè çàáëîêèðîâàí èç-çà 3-õ ïðåäóïðåæäåíèé íà %i äíåé. Ïðè÷èíà: %s",
+								name, 30, condition);
+								SCMTA(COLOR_RED2, string);
+								
+								new data[16], time[16], unban[16], Day, Month, Year, Second, Minute, Hour;
+								getdate(Year, Month, Day); gettime(Hour, Minute, Second);
+								format(data, sizeof(data), "%02d.%02d.%02d", Day, Month, Year);
+								format(time, sizeof(time), "%02d:%02d:%02d", Hour, Minute, Second);
+								unban = Data(30, Day, Month, Year);
 
-							static const fmt_query2[] = "INSERT INTO \
-							banlist (name, data, administration, `time`, days, `condition`, unban) \
-							VALUES ('%s', '%s', '%s', '%s', '%i', '%s', '%s')";
+								static const fmt_query2[] = "INSERT INTO \
+								banlist (name, data, administration, `time`, days, `condition`, unban) \
+								VALUES ('%s', '%s', '%s', '%s', '%i', '%s', '%s')";
 
-							new query2[sizeof(fmt_query2) + (-2 + 64) + (-2 + 32) + (-2 + 64) + (-2 + 32) + (-2 + 11) + (-2 + 64) + (-2 + 32)];
-			 				format(query2, sizeof(query2), fmt_query2,
-							  name,
-							  data,
-							  player_info[playerid][NAME],
-							  time,
-							  30,
-							  condition,
-							  unban
-							  );
-			 				mysql_tquery(dbHandle, query2);
-			 				
-			 				static const fmt_query3[] = "UPDATE users SET warn = '%i' WHERE name = '%s'";
-							new query3[sizeof(fmt_query3) + (-2 + 1) + (-2 + MAX_PLAYER_NAME)];
- 							format(query3, sizeof(query3), fmt_query3, 0, name);
- 							mysql_tquery(dbHandle, query3);
-						}
-						
-						else
-						{
-							format(string, sizeof(string), "Àäìèíèñòðàòîð %s âûäàë îôôëàéí ïðåäóïðåæäåíèå èãðîêó %s [%i/3]. Ïðè÷èíà: %s",
-															player_info[playerid][NAME], name, counter, condition);
-							SCMTA(COLOR_RED2, string);
-							static const fmt_query4[] = "UPDATE users SET warn = '%i' WHERE name = '%s'";
-							new query4[sizeof(fmt_query4) + (-2 + 1) + (-2 + MAX_PLAYER_NAME)];
- 							format(query4, sizeof(query4), fmt_query4, counter, name);
- 							mysql_tquery(dbHandle, query4);
+								new query2[sizeof(fmt_query2) + (-2 + 64) + (-2 + 32) + (-2 + 64) + (-2 + 32) + (-2 + 11) + (-2 + 64) + (-2 + 32)];
+				 				format(query2, sizeof(query2), fmt_query2,
+								  name,
+								  data,
+								  player_info[playerid][NAME],
+								  time,
+								  30,
+								  condition,
+								  unban
+								  );
+				 				mysql_tquery(dbHandle, query2);
+				 				
+				 				static const fmt_query3[] = "UPDATE users SET warn = '%i' WHERE name = '%s'";
+								new query3[sizeof(fmt_query3) + (-2 + 1) + (-2 + MAX_PLAYER_NAME)];
+	 							format(query3, sizeof(query3), fmt_query3, 0, name);
+	 							mysql_tquery(dbHandle, query3);
+							}
+							
+							else
+							{
+								format(string, sizeof(string), "Àäìèíèñòðàòîð %s âûäàë îôôëàéí ïðåäóïðåæäåíèå èãðîêó %s [%i/3]. Ïðè÷èíà: %s",
+																player_info[playerid][NAME], name, counter, condition);
+								SCMTA(COLOR_RED2, string);
+								static const fmt_query4[] = "UPDATE users SET warn = '%i' WHERE name = '%s'";
+								new query4[sizeof(fmt_query4) + (-2 + 1) + (-2 + MAX_PLAYER_NAME)];
+	 							format(query4, sizeof(query4), fmt_query4, counter, name);
+	 							mysql_tquery(dbHandle, query4);
+							}
 						}
 					}
  				}
