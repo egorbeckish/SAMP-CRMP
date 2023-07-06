@@ -63,6 +63,7 @@ enum player
 	RANK,
 	NAME_RANK,
 	WARN,
+ 	RP,
 };
 new player_info[MAX_PLAYERS][player];
 
@@ -77,6 +78,8 @@ enum dialogs
 	DLG_SKIN,
 	DLG_MENU,
 	DLG_STAT,
+	DLG_STAT2,
+	DLG_BAN,
 };
 
 public OnGameModeInit()
@@ -728,6 +731,9 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 			}
 		}
+
+		case DLG_STAT2: {if (response) SPD(playerid, -1, 0, " ", " ", " ", " ");}
+		// case DLG_BAN: {SCM(playerid, COLOR_RED, "Èñïîëüçóéòå \"/q\", ÷òîáû âûéòè.");}
 	}
 
 	return 1;
@@ -816,11 +822,11 @@ public OnPlayerClickMap(playerid, Float:fX, Float:fY, Float:fZ)
 	{
 		if (GetPlayerState(playerid) == PLAYER_STATE_DRIVER)
 		{
-			SetVehiclePos(GetPlayerVehicleID(playerid), fX, fY, fZ);
+			SetVehiclePos(GetPlayerVehicleID(playerid), fX, fY, fZ + 2);
 			PutPlayerInVehicle(playerid, GetPlayerVehicleID(playerid), 0);
 		}
 
-		else SetPlayerPos(playerid, fX, fY, fZ);
+		else SetPlayerPos(playerid, fX, fY, fZ + 2);
 
 		SetPlayerVirtualWorld(playerid, 0);
 		SetPlayerInterior(playerid, 0);
@@ -1555,3 +1561,163 @@ CMD:menu(playerid)
 	return 1;
 }
 alias:menu("mn");
+
+
+CMD:stat(playerid, response)
+{
+	new name[MAX_PLAYER_NAME], rows;
+	GetPlayerName(playerid, name, MAX_PLAYER_NAME);
+
+	static const fmt_query[] = "SELECT * FROM users WHERE name = '%s'";
+	new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME)];
+	format(query, sizeof(query), fmt_query, name);
+	mysql_query(dbHandle, query);
+	
+	cache_get_row_count(rows);
+	if (rows)
+	{
+		cache_get_value_name_int(0, "age", player_info[playerid][AGE]);
+		cache_get_value_name_int(0, "exp", player_info[playerid][EXP]);
+		cache_get_value_name_int(0, "sex", player_info[playerid][SEX]);
+		cache_get_value_name_int(0, "money", player_info[playerid][MONEY]);
+		cache_get_value_name_int(0, "warn", player_info[playerid][WARN]);
+	}
+	
+	new string[1000];
+	format(string, sizeof(string),
+		"Íèêíåéì: %s\n\
+		Âîçðàñò: %i\n\
+		Îïûò: %i\n\
+		Ïîë: %s\n\
+		Äåíüãè: %i\n\n\
+		--------------Íàêàçàíèå--------------\n\
+		Ïðåäóïðåæäåíèå: %i èç 3",
+		player_info[playerid][NAME],
+		player_info[playerid][AGE],
+		player_info[playerid][EXP],
+		(player_info[playerid][SEX] == 1) ? ("Ìóæñêîé") : ("Æåíñêèé"),
+		player_info[playerid][MONEY],
+		player_info[playerid][WARN]);
+		
+	SPD(playerid, DLG_STAT2, DIALOG_STYLE_MSGBOX, "Ñòàòèñòèêà", string, "Âûõîä", "");
+}
+
+
+
+stock Data(days, Day, Month, Year)
+{
+	new _data[16];
+	if (31 <= (Day + days) < 60)
+	{
+		if ((Month + 1) > 12) format(_data, sizeof(_data), "%02d.%02d.%02d", (Day + days) - 30, 1, Year + 1);
+		else format(_data, sizeof(_data), "%02d.%02d.%02d", (Day + days) - 30, Month + 1, Year);
+	}
+	
+	else if (60 <= (Day + days) < 90)
+	{
+		if ((Month + 2) > 12) format(_data, sizeof(_data), "%02d.%02d.%02d", (Day + days) - 30*2, 1, Year + 1);
+		else format(_data, sizeof(_data), "%02d.%02d.%02d", (Day + days) - 30*2, Month + 2, Year);
+	}
+
+	else if (90 <= (Day + days) < 120)
+	{
+		if ((Month + 3) > 12) format(_data, sizeof(_data), "%02d.%02d.%02d", (Day + days) - 30*3, 1, Year + 1);
+		else format(_data, sizeof(_data), "%02d.%02d.%02d", (Day + days) - 30*3, Month + 3, Year);
+	}
+
+	else if (120 <= (Day + days) < 150)
+	{
+		if ((Month + 4) > 12) format(_data, sizeof(_data), "%02d.%02d.%02d", (Day + days) - 30*4, 1, Year + 1);
+		else format(_data, sizeof(_data), "%02d.%02d.%02d", (Day + days) - 30*4, Month + 4, Year);
+	}
+
+	else if (150 <= (Day + days) < 180)
+	{
+		if ((Month + 5) > 12) format(_data, sizeof(_data), "%02d.%02d.%02d", (Day + days) - 30*5, 1, Year + 1);
+		else format(_data, sizeof(_data), "%02d.%02d.%02d", (Day + days) - 30*5, Month + 5, Year);
+	}
+
+	else if (180 <= (Day + days) < 210)
+	{
+		if ((Month + 6) > 12) format(_data, sizeof(_data), "%02d.%02d.%02d", (Day + days) - 30*6, 1, Year + 1);
+		else format(_data, sizeof(_data), "%02d.%02d.%02d", (Day + days) - 30*6, Month + 6, Year);
+	}
+	else format(_data, sizeof(_data), "%02d.%02d.%02d", Day + days, Month, Year);
+
+	return _data;
+}
+
+
+CMD:ban(playerid, params[])
+{
+	if (player_info[playerid][ADMIN] >= 3)
+	{
+		extract params -> new string:id[3], days, string:condition[100];
+		if (!strlen(id) && days < 1 && !strlen(condition)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /ban [id] [days] [condition]");
+		else
+		{
+			if (!IsPlayerConnected(strval(id))) SCM(playerid, COLOR_GREY, "Äàííîãî èãðîêà íåò íà ñåðâåðå.");
+			else
+			{
+				if (days < 1) SCM(playerid, COLOR_GREY, "Áëîêèðîâêà äîëæíà áûòü îò 1 äíÿ.");
+				else
+				{
+					if (!strlen(condition)) SCM(playerid, COLOR_GREY, "Ââåäèòå ïðè÷èíó.");
+					else
+					{
+						new string[200], name[MAX_PLAYER_NAME];
+						GetPlayerName(strval(id), name, MAX_PLAYER_NAME);
+						format(string, sizeof(string), "Àäìèíèñòðàòîð %s çàáëîêèðîâàë èãðîêà %s íà %i äíåé. Ïðè÷èíà: %s",
+						player_info[playerid][NAME], name, days, condition);
+						SCMTA(COLOR_RED2, string);
+						
+						format(string, sizeof(string), "Àäìèíèñòðàòîð %s çàáëîêèðîâàë âàñ íà %i äíåé. Ïðè÷èíà: %s",
+						player_info[playerid][NAME], days, condition);
+						SCM(strval(id), COLOR_RED, string);
+
+						new data[64], Day, Month, Year, Second, Minute, Hour, time[64], unban[16];
+						getdate(Year, Month, Day); gettime(Hour, Minute, Second);
+						format(data, sizeof(data), "%02d.%02d.%02d", Day, Month, Year);
+						format(time, sizeof(time), "%02d:%02d:%02d", Hour, Minute, Second);
+						unban  = Data(days, Day, Month, Year);
+
+						static const fmt_query[] = "INSERT INTO \
+						banlist (name, data, administration, `time`, days, `condition`, unban)\
+						VALUES ('%s', '%s', '%s', '%s', '%d', '%s', '%s')";
+
+						new query[sizeof(fmt_query) + (-2 + 64) + (-2 + 32) + (-2 + 64) + (-2 + 32) + (-2 + 11) + (-2 + 64) + (-2 + 32)];
+		 				format(query, sizeof(query), fmt_query,
+						  name,
+						  data,
+						  player_info[playerid][NAME],
+						  time,
+						  days,
+						  condition,
+						  unban
+						  );
+		 				mysql_tquery(dbHandle, query);
+		 				
+	 					format(string, sizeof(string),
+		 					"Íèêíåéì àäìèíèñòðàòîðà: %s\n\
+		 					Êîë-âî äíåé áëîêèðîâêè: %i\n\
+						 	Ïðè÷èíà: %s\n\n\
+		 					Äàòà áëîêèðîâêè: %s\n\
+		 					Âðåìÿ: %s\n\
+		 					Äàòà ðàçáëîêèðîâêè: %s",
+		 					player_info[playerid][NAME],
+		 					days,
+		 					condition,
+		 					data,
+		 					time,
+		 					unban);
+	 					SPD(strval(id), DLG_BAN, DIALOG_STYLE_MSGBOX, "Áëîêèðîâêà àêêàóíòà", string, "Âûõîä", "");
+	 					SCM(strval(id), COLOR_RED, "Èñïîëüçóéòå \"/q\", ÷òîáû âûéòè.");
+	 					Kick(strval(id));
+					}
+				}
+			}
+		}
+	}
+
+	return 1;
+}
