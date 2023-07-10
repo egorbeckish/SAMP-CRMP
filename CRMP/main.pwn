@@ -26,6 +26,13 @@
 #define COLOR_GREY  0xA2A1AbAA
 #define COLOR_YELLOW  0xFFF017AA
 #define COLOR_BLUE  0x308DFFAA
+#define COLOR_YELLOW2 0xC4B404AA
+
+#if defined abs
+	#undef abs
+#endif
+#define abs(%0)\
+	(%0 < 0) ? (-(%0)) : (%0)
 
 new MySQL:dbHandle;
 new PlayerAFK[MAX_PLAYERS];
@@ -57,15 +64,60 @@ enum player
 	MONEY,
 	LEVEL,
 	EXP,
-	HP,
-	ARM,
-	FRACTION,
-	RANK,
-	NAME_RANK,
-	WARN,
- 	BAN,
+	Float:HP,
+	Float:ARMOUR,
+	Float:X,
+	Float:Y,
+	FLoat:Z,
 };
 new player_info[MAX_PLAYERS][player];
+
+
+
+enum JAIL
+{
+	bool:J_JAIL,
+	J_TIME,
+	J_CONDITION[64],
+	Float:J_X,
+	Float:J_Y,
+	Float:J_Z,
+	J_SKIN,
+};
+new jail_info[MAX_PLAYERS][JAIL];
+
+enum WARN
+{
+	W_WARN,
+	W_CONDITION[64],
+};
+new warn_info[MAX_PLAYERS][WARN];
+
+enum BAN
+{
+	B_ADMIN[64],
+	DAYS,
+	B_TIME[16],
+	B_CONDITION[64],
+	B_DATA[16],
+	UNBAN[16],
+};
+new ban_info[MAX_PLAYERS][BAN];
+
+
+enum ORGANIZATION
+{
+	FRACTION,
+	RANK,
+	NAME_RANK[32],
+	bool:LEADER,
+	O_SKIN,
+	Float:O_X,
+	Float:O_Y,
+	Float:O_Z,
+};
+new organization_info[MAX_PLAYERS][ORGANIZATION];
+
 
 enum dialogs
 {
@@ -81,6 +133,37 @@ enum dialogs
 	DLG_STAT2,
 	DLG_BAN,
 };
+
+
+new Float:jail_spawn[12][3] = {
+					{ -1803.2435, -2833.7939, 14.2163},
+					{ -1804.8093, -2837.1912, 14.2163},
+					{ -1806.9464, -2841.8916, 14.2163},
+					{ -1808.5771, -2844.8264, 14.2163},
+					{ -1810.6672, -2848.8464, 14.2163},
+					{ -1812.4492, -2852.0698, 14.2163},
+					{ -1814.4500, -2856.6196, 14.2163},
+					{ -1816.1658, -2859.9084, 14.2163},
+					{ -1817.9237, -2863.5110, 14.2163},
+					{ -1820.2755, -2866.9219, 14.2163},
+					{ -1821.9863, -2870.8372, 14.2163},
+					{ -1823.6901, -2874.4792, 14.2163}
+				};
+
+
+
+new Float:player_spawn[5][3] = {
+	{ 384.3503, 1676.8229, 12.0092},
+	{ -2471.8445, 2838.1826, 37.7199},
+	{ -2236.3992, 269.3929, 24.5337},
+	{ -573.2861, -1565.2938, 40.8223},
+	{ 1811.4315, 2507.4387, 15.6717}
+};
+
+
+
+
+
 
 public OnGameModeInit()
 {
@@ -169,13 +252,13 @@ public CheckRegistration(playerid)
  		if (!rows) ShowLogin(playerid);
 		else
 		{
-			new administration[MAX_PLAYER_NAME], days, condition[64], data[32], time[32], unban[32], string[200];
-			cache_get_value_name(0, "administration", administration, MAX_PLAYER_NAME);
-			cache_get_value_name_int(0, "days", days);
-			cache_get_value_name(0, "condition", condition, 64);
-			cache_get_value_name(0, "data", data, 32);
-			cache_get_value_name(0, "time", time, 32);
-			cache_get_value_name(0, "unban", unban, 32);
+			new string[200];
+			cache_get_value_name(0, "administration", ban_info[playerid][B_ADMIN], MAX_PLAYER_NAME);
+			cache_get_value_name_int(0, "days", ban_info[playerid][DAYS]);
+			cache_get_value_name(0, "condition", ban_info[playerid][B_CONDITION], 64);
+			cache_get_value_name(0, "data", ban_info[playerid][B_DATA], 16);
+			cache_get_value_name(0, "time", ban_info[playerid][B_TIME], 16);
+			cache_get_value_name(0, "unban", ban_info[playerid][UNBAN], 32);
 			format(string, sizeof(string),
 		 		"Íèêíåéì àäìèíèñòðàòîðà: %s\n\
 		 		Êîë-âî äíåé áëîêèðîâêè: %i\n\
@@ -183,12 +266,12 @@ public CheckRegistration(playerid)
 		 		Äàòà áëîêèðîâêè: %s\n\
 		 		Âðåìÿ: %s\n\
 		 		Äàòà ðàçáëîêèðîâêè: %s",
-		 		administration,
-		 		days,
-		 		condition,
-		 		data,
-		 		time,
-		 		unban);
+		 		ban_info[playerid][B_ADMIN],
+		 		ban_info[playerid][DAYS],
+		 		ban_info[playerid][B_CONDITION],
+		 		ban_info[playerid][B_DATA],
+		 		ban_info[playerid][B_TIME],
+		 		ban_info[playerid][UNBAN]);
 
 	 		SPD(playerid, DLG_BAN, DIALOG_STYLE_MSGBOX, "Áëîêèðîâêà àêêàóíòà", string, "Âûõîä", "");
 	 		SCM(playerid, COLOR_RED, "Èñïîëüçóéòå \"/q\", ÷òîáû âûéòè.");
@@ -233,7 +316,15 @@ stock ShowRegistration(playerid)
 }
 
 public OnPlayerDisconnect(playerid, reason)
-{
+{	
+	new Float:health;
+	GetPlayerHealth(playerid, health);
+
+	static const fmt_query[] = "UPDATE users SET health = '%f' WHERE name = '%s'";
+	new query[sizeof(fmt_query) + (-2 + 3) + (-2 + MAX_PLAYER_NAME)];
+	format(query, sizeof(query), fmt_query, health, player_info[playerid][NAME]);
+	mysql_tquery(dbHandle, query);
+
 	return 1;
 }
 
@@ -245,7 +336,27 @@ public OnPlayerSpawn(playerid)
 		return Kick(playerid);
 	}
 
-	SetPlayerSkin(playerid, player_info[playerid][SKIN]);
+	static const fmt_query[] = "SELECT * FROM jaillist WHERE name = '%s'";
+	new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME)];
+ 	format(query, sizeof(query), fmt_query, player_info[playerid][NAME]);
+ 	mysql_query(dbHandle, query);
+
+	new rows;
+	cache_get_row_count(rows);
+	if (rows)
+	{
+		new index = random(12);
+		SetPlayerPos(playerid, jail_spawn[index][0], jail_spawn[index][1], jail_spawn[index][2]);
+		SetPlayerSkin(playerid, jail_info[playerid][J_SKIN]);
+		SetPlayerHealth(playerid, player_info[playerid][HP]);
+	}
+	else
+	{
+		new index = random(5);
+		SetPlayerPos(playerid, player_spawn[index][0], player_spawn[index][1], player_spawn[index][2]);
+		SetPlayerSkin(playerid, player_info[playerid][SKIN]);
+		SetPlayerHealth(playerid, player_info[playerid][HP]);
+	}
 
 	return 1;
 }
@@ -253,6 +364,8 @@ public OnPlayerSpawn(playerid)
 public OnPlayerDeath(playerid, killerid, reason)
 {
 	PlayerAFK[playerid] = -2;
+	SetPlayerHealth(playerid, 20.0);
+	
 	return 1;
 }
 
@@ -460,10 +573,25 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		{
 			if (response)
 			{
+				new string[300];
 				if (!strlen(inputtext))
 	            {
 	                ShowLogin(playerid);
-	                return SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ââåäèòå ïàðîëü â âñïëûâàþùåì îêíå è íàæìèòå \"Äàëåå\".");
+	                SetPVarInt(playerid, "WrongPassword", GetPVarInt(playerid, "WrongPassword") - 1);
+					if (GetPVarInt(playerid, "WrongPassword") > 0)
+					{
+						format(string, sizeof(string), "[ÎØÈÁÊÀ] {FFFFFF}Íåâûðíûé ââîä ïàðîëÿ. Ó âàñ îñòàëîñü %i ïîïûò(îê/êè), ÷òîáû ââåñòè ïàðîëü.", GetPVarInt(playerid, "WrongPassword"));
+						SCM(playerid, COLOR_RED, string);
+						return SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ââåäèòå ïàðîëü â âñïëûâàþùåì îêíå è íàæìèòå \"Äàëåå\".");
+					}
+
+					else
+					{
+                        SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Âû èñïîëüçîâàëè âñå ïðåäîñòàâëåííûå âàì ïîïûòêè.");
+                        SCM(playerid, COLOR_RED, "Èñïîëüçóéòå \"/q\", ÷òîáû âûéòè.");
+                        SPD(playerid, -1, 0, " ", " ", " ", " ");
+                        return Kick(playerid);
+					}
 				}
 
 				if (strcmp(player_info[playerid][PASSWORD], inputtext) == 0)
@@ -472,23 +600,22 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME) + (-2 + 64)];
  					format(query, sizeof(query), fmt_query, player_info[playerid][NAME], player_info[playerid][PASSWORD]);
  					mysql_tquery(dbHandle, query, "PlayerLogin", "i", playerid);
-
-                    // SCM(playerid, COLOR_GREEN, "[AA?II] {FFFFFF}Ia?ieu oniaoii aaaaai.");
 				}
 
 				else
 				{
-					new string[300];
 					SetPVarInt(playerid, "WrongPassword", GetPVarInt(playerid, "WrongPassword") - 1);
 					if (GetPVarInt(playerid, "WrongPassword") > 0)
 					{
-						format(string, sizeof(string), "[ÎØÈÁÊÀ] {FFFFFF}Íåâûðíûé ââîä ïàîëÿ. Ó âàñ îñòàëîñü %i ïîïûò(îê/êè), ÷òîáû ââåñòè ïàðîëü.", GetPVarInt(playerid, "WrongPassword"));
+						format(string, sizeof(string), "[ÎØÈÁÊÀ] {FFFFFF}Íåâûðíûé ââîä ïàðîëÿ. Ó âàñ îñòàëîñü %i ïîïûò(îê/êè), ÷òîáû ââåñòè ïàðîëü.", GetPVarInt(playerid, "WrongPassword"));
 						SCM(playerid, COLOR_RED, string);
 					}
 
 					else
 					{
-                        SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}O aan caeii?eeenu iiiuoee aey aoiaa ia na?aaÈe auee io iaai ioeee??aiu.");
+                        SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Âû èñïîëüçîâàëè âñå ïðåäîñòàâëåííûå âàì ïîïûòêè.");
+                        SCM(playerid, COLOR_RED, "Èñïîëüçóéòå \"/q\", ÷òîáû âûéòè.");
+                        SPD(playerid, -1, 0, " ", " ", " ", " ");
                         Kick(playerid);
 					}
 
@@ -535,7 +662,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						"Ââåäè ñóùåñòâóþùèé Email äëÿ òîãî, ÷òîáû ïðè óòåðè âàìè ïàðîëÿ âû ñìîãëè åãî âîññòàíîâèòü.\n\
 						Ââåäè email â ïîëå íèæå è íàæìèòå \"Äàëåå\"",
 						"Äàëåå",
-						"");
+						"Ïðîïóñòèòü");
 				}
 
 				else
@@ -557,44 +684,57 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 		case DLG_REGEMAIL:
 		{
-
-			if (!strlen(inputtext))
+			if (response)
 			{
-				SPD(playerid, DLG_REGEMAIL, DIALOG_STYLE_INPUT,
-					"{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Ââîä • Email •••",
-					"Ââåäè ñóùåñòâóþùèé Email äëÿ òîãî, ÷òîáû ïðè óòåðè âàìè ïàðîëÿ âû ñìîãëè åãî âîññòàíîâèòü.\n\
-					Ââåäè email â ïîëå íèæå è íàæìèòå \"Äàëåå\"",
-					"Äàëåå",
-					"");
-                return SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ââåäèòå email âñïëûâàþùåì îêíå è íàæìèòå \"Äàëåå\"");
+				if (!strlen(inputtext))
+				{
+					SPD(playerid, DLG_REGEMAIL, DIALOG_STYLE_INPUT,
+						"{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Ââîä • Email •••",
+						"Ââåäè ñóùåñòâóþùèé Email äëÿ òîãî, ÷òîáû ïðè óòåðè âàìè ïàðîëÿ âû ñìîãëè åãî âîññòàíîâèòü.\n\
+						Ââåäè email â ïîëå íèæå è íàæìèòå \"Äàëåå\"",
+						"Äàëåå",
+						"Ïðîïóñòèòü");
+	                return SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ââåäèòå email âñïëûâàþùåì îêíå è íàæìèòå \"Äàëåå\"");
+				}
+
+				new regex:rg_emailcheck = regex_new("^[a-zA-Z0-9.-]{1,}@[a-zA-Z]{1,}.[a-zA-Z]{1,5}$");
+				if (regex_check(inputtext, rg_emailcheck))
+				{
+				    strmid(player_info[playerid][EMAIL], inputtext, 0, strlen(inputtext), 64);
+					SPD(playerid, DLG_REGREF, DIALOG_STYLE_INPUT,
+						"{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Ââîä • Ðåôåðàëüíàÿ ñèñòåìà •••",
+						"Ââåäèòå íèêíåéì èãðîêà, êîòîðûé âàñ ïðèãëàñèë íà ñåðâåð\
+						 è íàæìèòå \"Äàëåå\"\n\n\
+						{0089ff}Ïðèìå÷àíèå:{FFFFFF}\n\
+						• Ïðèìåð êàê äîëæåí âûãëÿäèòü íèêíåéì - Egor_Egorov",
+						"Äàëåå",
+						"Ïðîïóñòèòü");
+				}
+
+				else
+				{
+					SPD(playerid, DLG_REGEMAIL, DIALOG_STYLE_INPUT,
+						"{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Ââîä • Email •••",
+						"Ââåäè ñóùåñòâóþùèé Email äëÿ òîãî, ÷òîáû ïðè óòåðè âàìè ïàðîëÿ âû ñìîãëè åãî âîññòàíîâèòü.\n\
+						Ââåäè email â ïîëå íèæå è íàæìèòå \"Äàëåå\"",
+						"Äàëåå",
+						"Ïðîïóñòèòü");
+					return SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ââåäèòå email àäðåñ âåðíî.");
+				}
+				regex_delete(rg_emailcheck);
 			}
 
-			new regex:rg_emailcheck = regex_new("^[a-zA-Z0-9.-]{1,}@[a-zA-Z]{1,}.[a-zA-Z]{1,5}$");
-			if (regex_check(inputtext, rg_emailcheck))
+			else
 			{
-			    strmid(player_info[playerid][EMAIL], inputtext, 0, strlen(inputtext), 64);
 				SPD(playerid, DLG_REGREF, DIALOG_STYLE_INPUT,
 					"{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Ââîä • Ðåôåðàëüíàÿ ñèñòåìà •••",
 					"Ââåäèòå íèêíåéì èãðîêà, êîòîðûé âàñ ïðèãëàñèë íà ñåðâåð\
-					 è íàæìèòå \"Äàëåå\"\n\n\
+					è íàæìèòå \"Äàëåå\"\n\n\
 					{0089ff}Ïðèìå÷àíèå:{FFFFFF}\n\
 					• Ïðèìåð êàê äîëæåí âûãëÿäèòü íèêíåéì - Egor_Egorov",
 					"Äàëåå",
 					"Ïðîïóñòèòü");
 			}
-
-			else
-			{
-				SPD(playerid, DLG_REGEMAIL, DIALOG_STYLE_INPUT,
-					"{ffd100}Ðåãèñòðàöèÿ{FFFFFF} ••• Ââîä • Email •••",
-					"Ââåäè ñóùåñòâóþùèé Email äëÿ òîãî, ÷òîáû ïðè óòåðè âàìè ïàðîëÿ âû ñìîãëè åãî âîññòàíîâèòü.\n\
-					Ââåäè email â ïîëå íèæå è íàæìèòå \"Äàëåå\"",
-					"Äàëåå",
-					"");
-                regex_delete(rg_emailcheck);
-				return SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] {FFFFFF}Ââåäèòå email àäðåñ âåðíî.");
-			}
-			regex_delete(rg_emailcheck);
 		}
 
 		case DLG_REGREF:
@@ -735,7 +875,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						player_info[playerid][EXP],
 						(player_info[playerid][SEX] == 1) ? ("Ìóæñêîé") : ("Æåíñêèé"),
 						player_info[playerid][MONEY],
-						player_info[playerid][WARN]);
+						warn_info[playerid][W_WARN]);
 						
                     SPD(playerid, DLG_STAT, DIALOG_STYLE_MSGBOX, "Ñòàòèñòèêà", string, "Íàçàä", "Âûõîä");
 				}
@@ -791,12 +931,13 @@ public PlayerLogin(playerid)
 		cache_get_value_name_int(0, "money", player_info[playerid][MONEY]);
 		cache_get_value_name_int(0, "level", player_info[playerid][LEVEL]);
 		cache_get_value_name_int(0, "exp", player_info[playerid][EXP]);
-		cache_get_value_name_int(0, "health", player_info[playerid][HP]);
-		cache_get_value_name_int(0, "armour", player_info[playerid][ARM]);
-		cache_get_value_name_int(0, "fraction", player_info[playerid][FRACTION]);
-		cache_get_value_name_int(0, "rank", player_info[playerid][RANK]);
-		cache_get_value_name(0, "name_rank", player_info[playerid][NAME_RANK], 30);
-		cache_get_value_name_int(0, "warn", player_info[playerid][WARN]);
+		cache_get_value_name_float(0, "health", player_info[playerid][HP]);
+		cache_get_value_name_float(0, "armour", player_info[playerid][ARMOUR]);
+		cache_get_value_name_int(0, "fraction", organization_info[playerid][FRACTION]);
+		cache_get_value_name_int(0, "rank", organization_info[playerid][RANK]);
+		cache_get_value_name(0, "name_rank", organization_info[playerid][NAME_RANK], 30);
+		cache_get_value_name_int(0, "jail_skin", jail_info[playerid][J_SKIN]);
+		cache_get_value_name_int(0, "warn", warn_info[playerid][W_WARN]);
 
 		TogglePlayerSpectating(playerid, 0);
 		SetPVarInt(playerid, "logged", 1);
@@ -1099,78 +1240,92 @@ stock Distance(Float: x, Float: y, Float: z, Float: fx, Float:fy, Float: fz)
 	return floatround(floatsqroot(floatpower(fx - x, 2) + floatpower(fy - y, 2) + floatpower(fz - z, 2)));
 }
 
-CMD:givemoney(playerid, params[])
+CMD:pay(playerid, params[])
 {
-	if (sscanf(params, "ui", params[0], params[1])) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /givemoney [id player] [value]");
+	extract params -> new string:id[4], money;
+	if (!strlen(id) && money <= 0) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /pay [id] [money]");
 	else
 	{
-		if (IsPlayerConnected(params[0]))
+		if (!IsPlayerConnected(strval(id))) SCM(playerid, COLOR_GREY, "Äàííîãî èãðîêà íåò íà ñåðâåðå.");
+		else
 		{
-			if (player_info[playerid][ADMIN] < 1)
-			{
-				new Float:x, Float:y, Float:z, Float:fx, Float:fy, Float:fz;
-				GetPlayerPos(playerid, x, y, z);
-				GetPlayerPos(params[0], fx, fy, fz);
+			new Float:x, Float:y, Float:z, Float:fx, Float:fy, Float:fz;
+			GetPlayerPos(playerid, x, y, z);
+			GetPlayerPos(strval(id), fx, fy, fz);
 
-				if (!(1 <= params[1] <= 5000)) SCM(playerid, COLOR_GREY, "Çíà÷åíèå íå ìîæåò áûòü ìåíüøå 1 è áîëüøå 5000 ðóáëåé.");
-				else if (playerid == params[0]) SCM(playerid, COLOR_GREY, "Âû íå ìîæåòå ïåðåäàâàòü äåíüãè ñàìîìó ñåáå.");
-				else if (Distance(x, y, z, fx, fy, fz) > 4) SCM(playerid, COLOR_GREY, "Âû íàõîäèòåñü ñëèøêîì äàëåêî îò èãðîêà.");
-				else
-				{
-					new string[100], string2[100];
-					format(string, sizeof(string), "Âû ïåðåäàëè óòðîêó %s %i ðóáëåé", player_info[params[0]][NAME], params[1]);
-					format(string2, sizeof(string2), "Èãðîê %s äàë âàì %i ðóáëåé", player_info[playerid][NAME], params[1]);
-					SCM(playerid, COLOR_BLUE, string);
-					SCM(params[0], COLOR_BLUE, string2);
-
-					GivePlayerMoney(params[0], params[1]);
-					player_info[params[0]][MONEY] += params[1];
-					static const fmt_query[] = "UPDATE users SET money = '%i' WHERE name = '%s'";
-					new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME)];
-		 			format(query, sizeof(query), fmt_query, player_info[params[0]][MONEY], player_info[params[0]][NAME]);
-		 			mysql_tquery(dbHandle, query);
-
-				}
-			}
-
+			if (!(1 <= money <= 5000)) SCM(playerid, COLOR_GREY, "Çíà÷åíèå íå ìîæåò áûòü ìåíüøå 1 è áîëüøå 5000 ðóáëåé.");
+			else if (playerid == strval(id)) SCM(playerid, COLOR_GREY, "Âû íå ìîæåòå ïåðåäàâàòü äåíüãè ñàìîìó ñåáå.");
+			else if (Distance(x, y, z, fx, fy, fz) > 4) SCM(playerid, COLOR_GREY, "Âû íàõîäèòåñü ñëèøêîì äàëåêî îò èãðîêà.");
 			else
 			{
-				if (params[1] < 0)
-				{
-					new string[100], string2[100];
-					format(string, sizeof(string), "Âû çàáðàëè ó èãðîêà %s %i ðóáëåé", player_info[params[0]][NAME], -params[1]);
-					format(string2, sizeof(string2), "Àäìèíèñòðàòîð %s çàáðàë ó âàñ %i ðóáëåé", player_info[playerid][NAME], -params[1]);
-					SCM(playerid, COLOR_BLUE, string);
-					SCM(params[0], COLOR_BLUE, string2);
+				new string[100];
+				format(string, sizeof(string), "Âû ïåðåäàëè óòðîêó %s %i ðóáëåé", player_info[strval(id)][NAME], money);
+				SCM(playerid, COLOR_BLUE, string);
+				format(string, sizeof(string), "Èãðîê %s äàë âàì %i ðóáëåé", player_info[playerid][NAME], money);
+				SCM(strval(id), COLOR_BLUE, string);
 
-					GivePlayerMoney(params[0], params[1]);
-					player_info[params[0]][MONEY] += params[1];
-					static const fmt_query[] = "UPDATE users SET money = '%i' WHERE name = '%s'";
-					new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME)];
-	 				format(query, sizeof(query), fmt_query, player_info[params[0]][MONEY], player_info[params[0]][NAME]);
-	 				mysql_tquery(dbHandle, query);
-				}
+				GivePlayerMoney(strval(id), money);
+				player_info[strval(id)][MONEY] += money;
+				static const fmt_query[] = "UPDATE users SET money = '%i' WHERE name = '%s'";
+				new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME)];
+		 		format(query, sizeof(query), fmt_query, player_info[strval(id)][MONEY], player_info[strval(id)][NAME]);
+		 		mysql_tquery(dbHandle, query);
+			}
+		}
+	}
 
+	return 1;
+}
+
+CMD:givemoney(playerid, params[])
+{
+	if (player_info[playerid][ADMIN] >= 4)
+	{
+		extract params -> new string:id[4], money;
+		if (!strlen(id) && money <= 0) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /givemoney [id] [money]");
+		else
+		{
+			if (!IsPlayerConnected(strval(id))) SCM(playerid, COLOR_GREY, "Äàííûé èãðîê íå íà ñåðâåðå.");
+			else
+			{
+				if (money == 0) SCM(playerid, COLOR_GREY, "Ââåäèòå çíà÷åíèå.");
 				else
-				{
-					new string[100], string2[100];
-					format(string, sizeof(string), "Âû âûäàëè èãðîêó %s %i ðóáëåé", player_info[params[0]][NAME], params[1]);
-					format(string2, sizeof(string2), "Àäìèíèñòðàòîð %s âûäàë âàì %i ðóáëåé", player_info[playerid][NAME], params[1]);
-					SCM(playerid, COLOR_BLUE, string);
-					SCM(params[0], COLOR_BLUE, string2);
+				{	
+					new string[200];
+					if (money < 0)
+					{
+						format(string, sizeof(string), "Âû çàáðàëè ó èãðîêà %s %i ðóáëåé", player_info[strval(id)][NAME], abs(money));
+						SCM(playerid, COLOR_BLUE, string);
+						format(string, sizeof(string), "Àäìèíèñòðàòîð %s çàáðàë ó âàñ %i ðóáëåé", player_info[playerid][NAME], abs(money));
+						SCM(strval(id), COLOR_BLUE, string);
 
-					GivePlayerMoney(params[0], params[1]);
-					player_info[params[0]][MONEY] += params[1];
-					static const fmt_query[] = "UPDATE users SET money = '%i' WHERE name = '%s'";
-					new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME)];
-	 				format(query, sizeof(query), fmt_query, player_info[params[0]][MONEY], player_info[params[0]][NAME]);
-	 				mysql_tquery(dbHandle, query);
+						GivePlayerMoney(strval(id), money);
+						player_info[strval(id)][MONEY] += money;
+						static const fmt_query[] = "UPDATE users SET money = '%i' WHERE name = '%s'";
+						new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME) + (-2 + 12)];
+		 				format(query, sizeof(query), fmt_query, player_info[strval(id)][MONEY], player_info[strval(id)][NAME]);
+		 				mysql_tquery(dbHandle, query);
+					}
+					
+					else
+					{
+						format(string, sizeof(string), "Âû âûäàëè èãðîêó %s %i ðóáëåé", player_info[strval(id)][NAME], money);
+						SCM(playerid, COLOR_BLUE, string);
+						format(string, sizeof(string), "Àäìèíèñòðàòîð %s âûäàë âàì %i ðóáëåé", player_info[playerid][NAME], money);
+						SCM(strval(id), COLOR_BLUE, string);
+
+						GivePlayerMoney(strval(id), money);
+						player_info[strval(id)][MONEY] += money;
+						static const fmt_query[] = "UPDATE users SET money = '%i' WHERE name = '%s'";
+						new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME) + (-2 + 11)];
+		 				format(query, sizeof(query), fmt_query, player_info[strval(id)][MONEY], player_info[strval(id)][NAME]);
+		 				mysql_tquery(dbHandle, query);	
+					}
 				}
 			}
 		}
-
-		else SCM(playerid, COLOR_GREY, "Äàííîãî èãðîêà íåò íà ñåðâåðå.");
 	}
+
 
 	return 1;
 }
@@ -1209,33 +1364,29 @@ CMD:jail(playerid, params[])
 		else
 		{
 			if (!IsPlayerConnected(strval(id))) SCM(playerid, COLOR_GREY, "Äàííîãî èãðîêà íåò íà ñåðâåðå.");
-			else if (time < 0) SCM(playerid, COLOR_GREY, "Âðåìÿ äîëæíî áûòü îò 1 óñëîâ. åä..");
+			else if (time < 0) SCM(playerid, COLOR_GREY, "Ââåäèòå âðåìÿ îò 1 ìèíóòû.");
 			else
 			{
 			    new string[100];
-				format(string, sizeof(string), "Àäìèíèñòðàòîð %s ïîñàäèë èãðîêà %s â äåìîðãàí. Ïðè÷èíà: %s", player_info[playerid][NAME], player_info[params[0]][NAME], params[1], params[2]);
+				format(string, sizeof(string), "Àäìèíèñòðàòîð %s ïîñàäèë èãðîêà %s â äåìîðãàí íà %i ìèíóò. Ïðè÷èíà: %s", player_info[playerid][NAME], player_info[strval(id)][NAME], time, condition);
 				SCMTA(COLOR_RED2, string);
-				format(string, sizeof(string), "Àäìèíèñòðàòîð %s ïîñàäèë âàñ â äåìîðãàí. Ïðè÷èíà: %s", player_info[playerid][NAME], params[1], params[2]);
-				SCM(params[0], COLOR_RED, string);
+				format(string, sizeof(string), "Àäìèíèñòðàòîð %s ïîñàäèë âàñ â äåìîðãàí íà %i ìèíóò. Ïðè÷èíà: %s", player_info[playerid][NAME], time, condition);
+				SCM(strval(id), COLOR_RED, string);
 
-				new Float:place[12][3] = {
-					{ -1803.2435, -2833.7939, 14.2163},
-					{ -1804.8093, -2837.1912, 14.2163},
-					{ -1806.9464, -2841.8916, 14.2163},
-					{ -1808.5771, -2844.8264, 14.2163},
-					{ -1810.6672, -2848.8464, 14.2163},
-					{ -1812.4492, -2852.0698, 14.2163},
-					{ -1814.4500, -2856.6196, 14.2163},
-					{ -1816.1658, -2859.9084, 14.2163},
-					{ -1817.9237, -2863.5110, 14.2163},
-					{ -1820.2755, -2866.9219, 14.2163},
-					{ -1821.9863, -2870.8372, 14.2163},
-					{ -1823.6901, -2874.4792, 14.2163}
-				};
+				new index = random(12);
+				SetPlayerPos(playerid, jail_spawn[index][0], jail_spawn[index][1], jail_spawn[index][2]);
+				SetPlayerSkin(playerid, jail_info[playerid][J_SKIN]);
 
-				new index;
-				index = random(12);
-				SetPlayerPos(playerid, place[index][0], place[index][1], place[index][2]);
+				static const fmt_query[] = "INSERT INTO \
+				jaillist (name, administration, `time`, `condition`)\
+				VALUES ('%s', '%s', '%i', '%s')";
+				new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME) + (-2 + MAX_PLAYER_NAME) + (-2 + 11) + (-2 + 64)];
+				format(query, sizeof(query), fmt_query, 
+					player_info[playerid][NAME], 
+					player_info[strval(id)][NAME], 
+					time, 
+					condition);
+				mysql_tquery(dbHandle, query);
 			}
 		}
 	}
@@ -1243,6 +1394,116 @@ CMD:jail(playerid, params[])
 	return 1;
 }
 
+CMD:jailoff(playerid, params[])
+{
+	if (player_info[playerid][ADMIN] >= 3)
+	{
+		extract params -> new string:name[64], time, string:condition[64];
+		if (!strlen(name) && time <= 0 && !strlen(condition)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /jailoff [name] [time] [condition]");
+		else
+		{
+			if (time <= 0) SCM(playerid, COLOR_GREY, "Âðåìÿ äîëæíî áûòü îò 1 ìèíóòû.");
+			else
+			{
+				if (!strlen(condition)) SCM(playerid, COLOR_GREY, "Ââåäèòå ïðè÷èíó.");
+				else
+				{
+					new string[200];
+					format(string, sizeof(string), "Àäìèíèñòðàòîð %s ïîñàäèë îôôëàéí èãðîêà %s â äåìîðãàí íà %i ìèíóò. Ïðè÷èíà: %s",
+						player_info[playerid][NAME], name, time, condition);
+					SCMTA(COLOR_RED2, string);
+
+					static const fmt_query[] = "INSERT INTO \
+					jaillist (name, administration, `time`, `condition`)\
+					VALUES ('%s', '%s', '%i', '%s')";
+					new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME) + (-2 + MAX_PLAYER_NAME) + (-2 + 11) + (-2 + 64)];
+					format(query, sizeof(query), fmt_query, 
+						name, 
+						player_info[playerid][NAME], 
+						time, 
+						condition);
+					mysql_tquery(dbHandle, query);
+				}
+			}
+		}
+	}
+
+	return 1;
+}
+
+CMD:unjail(playerid, params[])
+{
+	if (player_info[playerid][ADMIN] >= 3)
+	{
+		extract params -> new string:id[4];
+		if (!strlen(id)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /jailoff [id]");
+		else
+		{
+			if (!IsPlayerConnected(strval(id))) SCM(playerid, COLOR_GREY, "");
+			else
+			{
+				static const fmt_query2[] = "SELECT * FROM jaillist WHERE name = '%s'";
+				new query2[sizeof(fmt_query2) + (-2 + MAX_PLAYER_NAME)], rows;
+				format(query2, sizeof(query2), fmt_query2, player_info[strval(id)][NAME]);
+				mysql_query(dbHandle, query2);
+
+				cache_get_row_count(rows);
+				if (!rows) SCM(playerid, COLOR_GREY, "Äàííûé èãðîê íå ñèäèò â äåìîðãàíå.");
+				else
+				{
+					new string[100];
+					format(string, sizeof(string), "Àäìèíèñòðàòîð %s âûïóñòèë èç äåìîðãàíà %s.",
+					player_info[playerid][NAME], player_info[strval(id)][NAME]);
+					SCMTA(COLOR_RED2, string);
+
+					new index = random(5);
+					SetPlayerSkin(playerid, player_info[playerid][SKIN]);
+					SetPlayerPos(playerid, player_spawn[index][0], player_spawn[index][1], player_spawn[index][2]);
+
+					static const fmt_query[] = "DELETE FROM jaillist WHERE name = '%s'";
+					new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME)];
+					format(query, sizeof(query), fmt_query, player_info[strval(id)][NAME]);
+					mysql_tquery(dbHandle, query);
+				}
+			}
+		}
+	}
+
+	return 1;
+}
+
+CMD:unjailoff(playerid, params[])
+{
+	if (player_info[playerid][ADMIN] >= 3)
+	{
+		extract params -> new string:name[64];
+		if (!strlen(name)) SCM(playerid, COLOR_GREY, "/unjailoff [name]");
+		else
+		{
+			static const fmt_query2[] = "SELECT * FROM jaillist WHERE name = '%s'";
+			new query2[sizeof(fmt_query2) + (-2 + MAX_PLAYER_NAME)], rows;
+			format(query2, sizeof(query2), fmt_query2, name);
+			mysql_query(dbHandle, query2);
+
+			cache_get_row_count(rows);
+			if (!rows) SCM(playerid, COLOR_GREY, "Äàííûé èãðîê íå ñèäèò â äåìîðãàíå.");
+			else
+			{
+				new string[200];
+				format(string, sizeof(string), "Àäìèíèñòðàòîð %s îôôëàéí âûïóñòèë èç äåìîðãàíà %s.",
+				player_info[playerid][NAME], name);
+				SCMTA(COLOR_RED2, string);
+
+				static const fmt_query[] = "DELETE FROM jaillist WHERE name = '%s'";
+				new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME)];
+				format(query, sizeof(query), fmt_query, name);
+				mysql_tquery(dbHandle, query);
+   			}
+		}
+	}
+
+	return 1;
+}
 
 CMD:goto(playerid, params[])
 {
@@ -1313,13 +1574,13 @@ CMD:warn(playerid, params[])
 			else
 			{
 				new string[200];
-			    player_info[strval(id)][WARN] += 1;
-			    if (player_info[strval(id)][WARN] == 3)
+			    warn_info[strval(id)][W_WARN] += 1;
+			    if (warn_info[strval(id)][W_WARN] == 3)
 			    {
 			    	new name[MAX_PLAYER_NAME];
 			    	GetPlayerName(strval(id), name, MAX_PLAYER_NAME);
 			    	format(string, sizeof(string), "Àäìèíèñòðàòîð %s âûäàë îôôëàéí ïðåäóïðåæäåíèå èãðîêó %s [%i/3]. Ïðè÷èíà: %s",
-								player_info[playerid][NAME], name, player_info[strval(id)][WARN], condition);
+								player_info[playerid][NAME], name, warn_info[strval(id)][W_WARN], condition);
 					SCMTA(COLOR_RED2, string);
 							
 					format(string, sizeof(string), "Àêêàóíò èãðîêà %s àâòîìàòè÷åñêè çàáëîêèðîâàí èç-çà 3-õ ïðåäóïðåæäåíèé íà %i äíåé. Ïðè÷èíà: %s",
@@ -1376,16 +1637,16 @@ CMD:warn(playerid, params[])
 			    {
 
 					format(string, sizeof(string), "Àäìèíèñòðàòîð %s âûäàë ïðåäóïðåæäåíèå èãðîêó %s [%i/3]. Ïðè÷èíà: %s", 
-						player_info[playerid][NAME], player_info[strval(id)][NAME], player_info[strval(id)][WARN], condition);
+						player_info[playerid][NAME], player_info[strval(id)][NAME], warn_info[strval(id)][W_WARN], condition);
 					SCMTA(COLOR_RED2, string);
 
 					format(string, sizeof(string), "Àäìèíèñòðàòîð %s âûäàë âàì ïðåäóïðåæäåíèå [%i/3]. Ïðè÷èíà: %s", 
-						player_info[playerid][NAME], player_info[strval(id)][WARN], condition);
+						player_info[playerid][NAME], warn_info[strval(id)][W_WARN], condition);
 					SCM(strval(id), COLOR_RED, string);
 
 					static const fmt_query[] = "UPDATE users SET warn = '%i' WHERE name = '%s'";
 					new query[sizeof(fmt_query) + (-2 + 1) + (-2 + MAX_PLAYER_NAME)];
- 					format(query, sizeof(query), fmt_query, player_info[strval(id)][WARN], player_info[strval(id)][NAME]);
+ 					format(query, sizeof(query), fmt_query, warn_info[strval(id)][W_WARN], player_info[strval(id)][NAME]);
  					mysql_tquery(dbHandle, query);
 	
  					Kick(strval(id));
@@ -1496,8 +1757,50 @@ CMD:unwarn(playerid, params[])
 {
 	if (player_info[playerid][ADMIN] >= 3)
 	{
+		extract params -> new string:id[4];
+		if (!strlen(id)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /unwarn [id]");
+		else
+		{
+			static const fmt_query[] = "SELECT * FROM users WHERE name = '%s'";
+			new query[sizeof(fmt_query) + (-2 + MAX_PLAYER_NAME)];
+ 			format(query, sizeof(query), fmt_query, player_info[strval(id)][NAME]);
+ 			mysql_query(dbHandle, query);
+
+ 			new rows, counter;
+ 			cache_get_row_count(rows);
+ 			if (rows)
+ 			{
+				cache_get_value_int(0, "warn", counter);
+				if (counter == 0) SCM(playerid, COLOR_GREY, "Ó äàííîãî àêêàóíòà áîëüøå íåò ïðåäóïðåæäåíèé.");
+				else
+				{
+					counter -= 1;
+					new string[200];
+					format(string, sizeof(string), "Àäìèíèñòðàòîð %s ñíÿë ïðåäóïðåæäåíèå èãðîêó %s [%i/3].",
+												player_info[playerid][NAME], player_info[strval(id)][NAME], counter);
+					SCMTA(COLOR_RED2, string);
+
+					static const fmt_query2[] = "UPDATE users SET warn = '%i' WHERE name = '%s'";
+					new query2[sizeof(fmt_query2) + (-2 + 1) + (-2 + MAX_PLAYER_NAME)];
+	 				format(query2, sizeof(query2), fmt_query2, counter, player_info[strval(id)][NAME]);
+	 				mysql_tquery(dbHandle, query2);
+	 			}
+ 			}
+
+ 			else SCM(playerid, COLOR_RED, "Äàííîãî èãðîêà íå ñóùåñòâóåò.");
+		}
+	}
+
+	return 1;
+}
+
+
+CMD:unwarnoff(playerid, params[])
+{
+	if (player_info[playerid][ADMIN] >= 3)
+	{
 		extract params -> new string:name[64];
-		if (!strlen(name)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /unwarn [nick]");
+		if (!strlen(name)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /unwarnoff [name]");
 		else
 		{
 			static const fmt_query[] = "SELECT * FROM users WHERE name = '%s'";
@@ -1515,7 +1818,7 @@ CMD:unwarn(playerid, params[])
 				{
 					counter -= 1;
 					new string[200];
-					format(string, sizeof(string), "Àäìèíèñòðàòîð %s ñíÿë ïðåäóïðåæäåíèå èãðîêó %s [%i/3].",
+					format(string, sizeof(string), "Àäìèíèñòðàòîð %s îôôëàéí ñíÿë ïðåäóïðåæäåíèå èãðîêó %s [%i/3].",
 												player_info[playerid][NAME], name, counter);
 					SCMTA(COLOR_RED2, string);
 
@@ -1600,7 +1903,7 @@ CMD:armour(playerid, params[])
 
 CMD:slap(playerid, params[])
 {
-	if (player_info[playerid][ADMIN] >= 2)
+	if (player_info[playerid][ADMIN] >= 1)
 	{
 		if (sscanf(params, "u", params[0])) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /slap [id]");
 		else
@@ -1697,7 +2000,7 @@ CMD:stat(playerid, response)
 		cache_get_value_name_int(0, "exp", player_info[playerid][EXP]);
 		cache_get_value_name_int(0, "sex", player_info[playerid][SEX]);
 		cache_get_value_name_int(0, "money", player_info[playerid][MONEY]);
-		cache_get_value_name_int(0, "warn", player_info[playerid][WARN]);
+		cache_get_value_name_int(0, "warn", warn_info[playerid][W_WARN]);
 	}
 	
 	new string[1000];
@@ -1714,7 +2017,7 @@ CMD:stat(playerid, response)
 		player_info[playerid][EXP],
 		(player_info[playerid][SEX] == 1) ? ("Ìóæñêîé") : ("Æåíñêèé"),
 		player_info[playerid][MONEY],
-		player_info[playerid][WARN]);
+		warn_info[playerid][W_WARN]);
 		
 	SPD(playerid, DLG_STAT2, DIALOG_STYLE_MSGBOX, "Ñòàòèñòèêà", string, "Âûõîä", "");
 }
@@ -1917,7 +2220,7 @@ CMD:unban(playerid, params[])
 	if (player_info[playerid][ADMIN] >= 5)
 	{
 		extract params -> new string:name[64];
-		if (!strlen(name)) SCM(playerid, COLOR_GREY, "Ââåäèòå íèêíåéì.");
+		if (!strlen(name)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå /unban [nick]");
 		else
 		{
 			static const fmt_query[] = "SELECT * FROM banlist WHERE name = '%s'";
@@ -1944,3 +2247,67 @@ CMD:unban(playerid, params[])
 
 	return 1;
 }
+
+
+CMD:ahelp(playerid)
+{
+	if (player_info[playerid][ADMIN] >= 1)
+	{
+		SCM(playerid, COLOR_YELLOW2,
+			"1 óðîâåíü: /kick, /sp, /a, /slap");
+		SCM(playerid, COLOR_YELLOW2,
+			"2 óðîâåíü: /skin, /jail, /setveh, /hp, /armour, /goto, /gethere");
+		SCM(playerid, COLOR_YELLOW2, 
+			"3 óðîâåíü: /ban, /warn");
+		SCM(playerid, COLOR_YELLOW2, 
+			"4 óðîâåíü: /offban, /warnoff, /unban, /unwarn, /givemoney");
+		SCM(playerid, COLOR_YELLOW2, 
+			"5 óðîâåíü: /makeadmin, /makeadminoff, /makeleader");
+	}
+	
+	return 1;
+}
+
+
+// CMD:spectation(playerid, params[])
+// {
+// 	if (player_info[playerid][ADMIN] >= 1)
+// 	{
+		
+// 	}
+
+// 	return 1;
+// }
+// alias:spectation("sp");
+
+
+
+CMD:a(playerid, params[])
+{
+	if (player_info[playerid][ADMIN] >= 1)
+	{
+		extract params -> new string:text[200];
+		if (!strlen(text)) SCM(playerid, COLOR_GREY, "Èñïîëüçóéòå  /a [text]");
+		else
+		{
+			format(text, sizeof(text), "[%c] %s[%i]: %s",
+				player_info[playerid][ADMIN] == 1 ? 'S' : 'A',
+				player_info[playerid][NAME],
+				player_info[playerid][ID],
+				text);
+
+			for (new id = GetPlayerPoolSize(); id != -1; id --)
+			{
+				if (!IsPlayerConnected(id)) continue;
+				else
+				{
+					if (player_info[id][ADMIN] >= 1) SCM(id, COLOR_YELLOW2, text);
+				}
+			}
+		}
+	}
+
+	return 1;
+}
+
+
