@@ -61,6 +61,7 @@ enum dialog
 	DLG_LOG,
 	DLG_REG,
 	DLG_MAIL,
+	DLG_REF,
 };
 
 
@@ -376,14 +377,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						DLG_MAIL,
 						DIALOG_STYLE_INPUT,
 						"Регистрация ••• Ввод email ••• ",
-						"Введите Email для того, чтобы вы могли восстановить свой пароль при его утере.\n\n\
+						"{FFFFFF}Введите Email для того, чтобы вы могли восстановить свой пароль при его утере.\n\n\
 						{033fdd}Примечание{FFFFFF}\n\
 						\t{ff0000}• {FFFFFF}Если сейчас у вас нет почты, то вы можете ее создать и в настройках ввести ее.",
 						"Далее",
 						"Пропустить"
 						);
 				}
-				
+
 				else
 				{
 				    ShowRegistration(playerid);
@@ -397,6 +398,78 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				SCM(playerid, COLOR_RED, "Используйте /q, чтобы выйти.");
 				SPD(playerid, -1, 0, "", "", "", "");
 				return Kick(playerid);
+			}
+		}
+
+		case DLG_MAIL:
+		{
+			if (response)
+			{
+				if (!strlen(inputtext))
+				{
+					ShowPlayerDialog(
+						playerid,
+						DLG_MAIL,
+						DIALOG_STYLE_INPUT,
+						"Регистрация ••• Ввод email ••• ",
+						"{FFFFFF}Введите Email для того, чтобы вы могли восстановить свой пароль при его утере.\n\n\
+						{033fdd}Примечание{FFFFFF}\n\
+						\t{ff0000}• {FFFFFF}Если сейчас у вас нет почты, то вы можете ее создать и в настройках ввести ее.",
+						"Далее",
+						"Пропустить"
+						);
+					return SendClientMessage(playerid, COLOR_RED, "[Ошибка]{FFFFFF} Введите email в выделенном вам поле.");
+				}
+
+				new regex:rg_mail = regex_new("^[a-zA-Z0-9.-_]{1,}@[a-zA-Z]{1,}.[a-zA-Z]{1,5}$");
+				if (regex_check(inputtext, rg_mail))
+				{
+					strmid(player_info[playerid][EMAIL], inputtext, 0, strlen(inputtext), 86);
+					ShowPlayerDialog(
+						playerid,
+						DLG_REF,
+						DIALOG_STYLE_INPUT,
+						"Регистрация ••• Реферальная система •••",
+						"{FFFFFF} Введите никнейм пригласившего вас игрока на сервер.\n\n\
+						{033fdd}Примечание{FFFFFF}\n\
+						\t{ff0000}• {FFFFFF} Никнейм должен иметь вид - Egor_Egorov.",
+						"Далее",
+						"Пропустить"
+						);
+				}
+
+				else
+				{
+					ShowPlayerDialog(
+						playerid,
+						DLG_MAIL,
+						DIALOG_STYLE_INPUT,
+						"Регистрация ••• Ввод email ••• ",
+						"{FFFFFF}Введите Email для того, чтобы вы могли восстановить свой пароль при его утере.\n\n\
+						{033fdd}Примечание{FFFFFF}\n\
+						\t{ff0000}• {FFFFFF}Если сейчас у вас нет почты, то вы можете ее создать и в настройках ввести ее.",
+						"Далее",
+						"Пропустить"
+						);
+					return SendClientMessage(playerid, COLOR_RED, "[ОШИБКА]{FFFFFF} Введите корректный email адрес.");
+				}
+
+				regex_delete(rg_mail);
+			}
+
+			else
+			{
+				ShowPlayerDialog(
+					playerid,
+					DLG_REF,
+					DIALOG_STYLE_INPUT,
+					"Регистрация ••• Реферальная система •••",
+					"{FFFFFF} Введите никнейм пригласившего вас игрока на сервер.\n\n\
+					{033fdd}Примечание{FFFFFF}\n\
+					\t{ff0000}• {FFFFFF} Никнейм должен иметь вид - Egor_Egorov.",
+					"Далее",
+					"Пропустить"
+					);
 			}
 		}
 	}
