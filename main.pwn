@@ -96,7 +96,7 @@ stock ConnectToMySQL()
 	}
 
 	mysql_log(ERROR | WARNING);
-    mysql_set_charset("cp1251");
+	mysql_set_charset("cp1251");
 }
 
 public OnGameModeExit()
