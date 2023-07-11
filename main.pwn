@@ -62,6 +62,7 @@ enum dialog
 	DLG_REG,
 	DLG_MAIL,
 	DLG_REF,
+	DLG_SEX,
 };
 
 
@@ -472,10 +473,69 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					);
 			}
 		}
-		
+
 		case DLG_REF:
 		{
-		
+			if (response)
+			{
+				if (!strlen(inputtext))
+				{
+					ShowPlayerDialog(
+						playerid,
+						DLG_REF,
+						DIALOG_STYLE_INPUT,
+						"Ðåãèñòðàöèÿ ••• Ðåôåðàëüíàÿ ñèñòåìà •••",
+						"{FFFFFF} Ââåäèòå íèêíåéì ïðèãëàñèâøåãî âàñ èãðîêà íà ñåðâåð.\n\n\
+						{033fdd}Ïðèìå÷àíèå{FFFFFF}\n\
+						\t{ff0000}• {FFFFFF} Íèêíåéì äîëæåí èìåòü âèä - Egor_Egorov.",
+						"Äàëåå",
+						"Ïðîïóñòèòü"
+						);
+				}
+
+				new regex:rg_referal = regex_new("^[a-zA-Z]{1,}_[a-zA-Z]{1,}$");
+				if (regex_check(inputtext, rg_referal))
+				{
+					ShowPlayerDialog(
+						playerid,
+						DLG_SEX,
+						DIALOG_STYLE_MSGBOX,
+						"Ðåãèñòðàöèÿ ••• Âûáîð ïîëà •••",
+						"Âûáåðèòå ïîë ïåðñîíàæà",
+						"Ìóæñêîé",
+						"Æåíñêèé"
+						);
+				}
+
+				else
+				{
+					ShowPlayerDialog(
+						playerid,
+						DLG_REF,
+						DIALOG_STYLE_INPUT,
+						"Ðåãèñòðàöèÿ ••• Ðåôåðàëüíàÿ ñèñòåìà •••",
+						"{FFFFFF} Ââåäèòå íèêíåéì ïðèãëàñèâøåãî âàñ èãðîêà íà ñåðâåð.\n\n\
+						{033fdd}Ïðèìå÷àíèå{FFFFFF}\n\
+						\t{ff0000}• {FFFFFF} Íèêíåéì äîëæåí èìåòü âèä - Egor_Egorov.",
+						"Äàëåå",
+						"Ïðîïóñòèòü"
+						);
+					return SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ] Ââåäèòå íèêíåéì êîððåêòíî.");
+				}
+			}
+
+			else
+			{
+				ShowPlayerDialog(
+					playerid,
+					DLG_SEX,
+					DIALOG_STYLE_MSGBOX,
+					"Ðåãèñòðàöèÿ ••• Âûáîð ïîëà •••",
+					"Âûáåðèòå ïîë ïåðñîíàæà",
+					"Ìóæñêîé",
+					"Æåíñêèé"
+					);
+			}
 		}
 	}
 
