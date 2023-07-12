@@ -38,16 +38,16 @@
 enum player
 {
 	ID,
-	NAME[MAX_PLAYER_NAME],
-	PASSWORD[64],
-	SALT[11],
-	EMAIL[86],
+	string:NAME[MAX_PLAYER_NAME],
+	string:PASSWORD[64],
+	string:SALT[11],
+	string:EMAIL[86],
 	REF,
 	SEX,
 	AGE,
 	SKIN,
-	REG_DATA[12],
-	REG_IP[16],
+	string:REG_DATA[13],
+	string:REG_IP[16],
 	ADMIN,
 	MONEY,
 	LEVEL,
@@ -373,7 +373,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					salt[10] = 0;
 					SHA256_PassHash(inputtext, salt, player_info[playerid][PASSWORD], 64);
 					strmid(player_info[playerid][SALT], salt, 0, 11, 11);
-					strmid(inputtext, player_info[playerid][PASSWORD], 0, strlen(inputtext), 64);
+					strmid(player_info[playerid][PASSWORD], inputtext, 0, strlen(inputtext), 64);
 
 					ShowPlayerDialog(
 						playerid,
@@ -571,24 +571,76 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					);
 			}
 		}
-		
+
 		case DLG_SKIN:
 		{
 			if (player_info[playerid][SEX] == 1) player_info[playerid][SKIN] = skinmale[listitem];
 			else player_info[playerid][SKIN] = skinfemale[listitem];
 			player_info[playerid][AGE] = 17;
-			
+
 			new Day, Month, Year;
 			getdate(Year, Month, Day);
 			new data[13], ip[16];
 			format(data, sizeof(data), "%02d.%02d.%02d", Day, Month, Year);
 			GetPlayerIp(playerid, ip, sizeof(ip));
+			
+			static const frm_query[] = "INSERT INTO \
+			users (name, password, salt, email, referal, sex, age, skin, regdata, regip)\
+			VALUES ('%s', '%s', '%s', '%s', '%i', '%i', '%i', '%i', '%s', '%s')";
+			new query[sizeof(frm_query) + MAX_PLAYER_NAME + 64 + 11 + 86 + 8 + 1 + 3 + 3 + 12 + 16];
+			format(
+				query,
+				sizeof(query),
+				frm_query,
+				player_info[playerid][NAME],
+				player_info[playerid][PASSWORD],
+				player_info[playerid][SALT],
+				player_info[playerid][EMAIL],
+				player_info[playerid][REF],
+				player_info[playerid][SEX],
+				player_info[playerid][AGE],
+				player_info[playerid][SKIN],
+	            data,
+	            ip
+				);
+			mysql_tquery(dbHandle, query);
+			
+			static const frm_query2[] = "SELECT * FROM users WHERE name = '%s'";
+			new query2[sizeof(frm_query2) + MAX_PLAYER_NAME];
+			format(query2, sizeof(query2), frm_query2, player_info[playerid][NAME]);
+			mysql_tquery(dbHandle, query2, "PlayerLogin", "i", playerid);
 		}
 	}
 
 
 	return 1;
 }
+
+forward PlayerLogin(playerid);
+public PlayerLogin(playerid)
+{
+	new rows;
+	cache_get_row_count(rows);
+	if (rows)
+	{
+	    cache_get_value_name_int(0, "id", player_info[playerid][ID]);
+	    cache_get_value_name(0, "email", player_info[playerid][EMAIL], 86);
+	    cache_get_value_name_int(0, "referal", player_info[playerid][REF]);
+	    cache_get_value_name_int(0, "sex", player_info[playerid][SEX]);
+	    cache_get_value_name_int(0, "age", player_info[playerid][AGE]);
+	    cache_get_value_name_int(0, "skin", player_info[playerid][SKIN]);
+	    cache_get_value_name(0, "regdata", player_info[playerid][REG_DATA], 12);
+	    cache_get_value_name(0, "regip", player_info[playerid][REG_IP], 16);
+	    cache_get_value_name_int(0, "admin", player_info[playerid][ADMIN]);
+	    cache_get_value_name_int(0, "money", player_info[playerid][MONEY]);
+	    cache_get_value_name_int(0, "exp", player_info[playerid][EXP]);
+	    cache_get_value_name_int(0, "level", player_info[playerid][LEVEL]);
+	    cache_get_value_name_float(0, "hp", player_info[playerid][HP]);
+	}
+
+	return 1;
+}
+
 
 public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 {
