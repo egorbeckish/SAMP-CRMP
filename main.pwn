@@ -133,6 +133,8 @@ public CheckRegistration(playerid)
 	if (rows) ShowLogin(playerid);
 	else ShowRegistration(playerid);
 
+	SetPVarInt(playerid, "CheckPassword", 4);
+
 	return 1;
 }
 
@@ -346,7 +348,63 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	{
 		case DLG_LOG:
 		{
+			if (response)
+			{
+				new string[200];
+				if (!strlen(inputtext))
+				{
+					ShowLogin(playerid);
+					SetPVarInt(playerid, "CheckPassword", GetPVarInt(playerid, "CheckPassword") - 1);
+					if (GetPVarInt(playerid, "CheckPassword") > 0)
+					{
+						format(string, sizeof(string), "[ÎØÈÁÊÀ]{FFFFFF} Ââåäèòå ïàðîëü â âñïëûâàþùåì îêíå. Ó âàñ îñòàëîñü %i ïîïûò(êè/êà).", GetPVarInt(playerid, "CheckPassword"));
+						return SCM(playerid, COLOR_RED, string);
+					}
 
+					else
+					{
+						SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ]{FFFFFF} Âû èñïîëüçîâàëè âñå ïîïûòêè, êîòîðûå âàì ïðåäîñòàâèëè.");
+						SCM(playerid, COLOR_RED, "Ââåäèòå /q, ÷òîáû âûéòè.");
+						SPD(playerid, -1, 0, "", "", "", "");
+						return Kick(playerid);
+					}
+				}
+
+				if (strcmp(player_info[playerid][PASSWORD], inputtext) == 0)
+				{
+					static const frm_query[] = "SELECT * FROM users WHERE name = '%s'";
+					new query[sizeof(frm_query) + MAX_PLAYER_NAME];
+					format(query, sizeof(query), frm_query, player_info[playerid][NAME]);
+					mysql_tquery(dbHandle, query, "PlayerLogin", "i", playerid);
+				}
+
+				else
+				{
+					ShowLogin(playerid);
+					SetPVarInt(playerid, "CheckPassword", GetPVarInt(playerid, "CheckPassword") - 1);
+					if (GetPVarInt(playerid, "CheckPassword") > 0)
+					{
+						format(string, sizeof(string), "[ÎØÈÁÊÀ]{FFFFFF} Ââåäèòå ïàðîëü â âñïëûâàþùåì îêíå. Ó âàñ îñòàëîñü %i ïîïûò(êè/êà).", GetPVarInt(playerid, "CheckPassword"));
+						return SCM(playerid, COLOR_RED, string);
+					}
+
+					else
+					{
+						SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ]{FFFFFF} Âû èñïîëüçîâàëè âñå ïîïûòêè, êîòîðûå âàì ïðåäîñòàâèëè.");
+						SCM(playerid, COLOR_RED, "Ââåäèòå /q, ÷òîáû âûéòè.");
+						SPD(playerid, -1, 0, "", "", "", "");
+						return Kick(playerid);
+					}
+
+				}
+			}
+			
+			else
+			{
+				SCM(playerid, COLOR_RED, "Ââåäèòå /q, ÷òîáû âûéòè.");
+				SPD(playerid, -1, 0, "", "", "", "");
+				return Kick(playerid);
+			}
 		}
 
 		case DLG_REG:
@@ -583,7 +641,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			new data[13], ip[16];
 			format(data, sizeof(data), "%02d.%02d.%02d", Day, Month, Year);
 			GetPlayerIp(playerid, ip, sizeof(ip));
-			
+
 			static const frm_query[] = "INSERT INTO \
 			users (name, password, salt, email, referal, sex, age, skin, regdata, regip)\
 			VALUES ('%s', '%s', '%s', '%s', '%i', '%i', '%i', '%i', '%s', '%s')";
@@ -604,7 +662,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	            ip
 				);
 			mysql_tquery(dbHandle, query);
-			
+
 			static const frm_query2[] = "SELECT * FROM users WHERE name = '%s'";
 			new query2[sizeof(frm_query2) + MAX_PLAYER_NAME];
 			format(query2, sizeof(query2), frm_query2, player_info[playerid][NAME]);
