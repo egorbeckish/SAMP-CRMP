@@ -67,6 +67,7 @@ enum dialog
 	DLG_SEX,
 	DLG_SKIN,
 	DLG_CLICK,
+	DLG_INFO_PLAYER,
 };
 
 
@@ -201,7 +202,7 @@ public OnPlayerSpawn(playerid)
 	SetPlayerPos(playerid, base_spawn[place][0], base_spawn[place][1], base_spawn[place][2]);
 	SetPlayerFacingAngle(playerid, base_spawn[place][3]);
 	SetCameraBehindPlayer(playerid);
-	
+
 	return 1;
 }
 
@@ -681,14 +682,46 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			format(query2, sizeof(query2), frm_query2, player_info[playerid][NAME]);
 			mysql_tquery(dbHandle, query2, "PlayerLogin", "i", playerid);
 		}
-		
+
 		case DLG_CLICK:
 		{
+		    new string[1000];
 			switch(listitem)
 			{
 				case 0:
 				{
-				
+				    format(string, sizeof(string),
+					"Íèêíåéì: %s\n\
+					Óðîâåíü: %i\n\
+					Îïûò: %i\n\n\
+					________________________________\n\n\
+				 	\t\tÍàêàçàíèÿ\n\
+				 	________________________________\n\n\
+				 	Êîë-âî ïðîâåäåííîå â äåìîðãàíå:\n\
+				 	Ïðåäóïðåæäåíèé: èç 3\n\
+				 	Êîë-âî ðàç áëîêèðîâêè àêêàóíòà:\n\n\
+					________________________________\n\n\
+				 	\tËè÷íàÿ èíôîðìàöèÿ\n\
+				 	________________________________\n\n\
+				 	Äàòà ðåãèñòðàöèè: %s\n\
+				 	Ðåãèñòðàöèîííûé IP-àäðåñ: %s\n\
+				 	",
+				 	player_info[playerid][NAME],
+				 	player_info[playerid][LEVEL],
+				 	player_info[playerid][EXP],
+				 	player_info[playerid][REG_DATA],
+				 	player_info[playerid][REG_IP]
+					 );
+					 
+					ShowPlayerDialog(
+						playerid,
+						DLG_INFO_PLAYER,
+						DIALOG_STYLE_MSGBOX,
+						"Èíôîðìàöèÿ èãðîêà",
+						string,
+						"Âûõîä",
+						""
+						);
 				}
 			}
 		}
@@ -718,7 +751,7 @@ public PlayerLogin(playerid)
 	    cache_get_value_name_int(0, "exp", player_info[playerid][EXP]);
 	    cache_get_value_name_int(0, "level", player_info[playerid][LEVEL]);
 	    cache_get_value_name_float(0, "hp", player_info[playerid][HP]);
-	    
+
 		SpawnPlayer(playerid);
 		SetPVarInt(playerid, "Login", 1);
 	}
