@@ -56,6 +56,8 @@ enum player
 };
 new player_info[MAX_PLAYERS][player];
 
+
+
 enum dialog
 {
 	DLG_LOG,
@@ -64,6 +66,7 @@ enum dialog
 	DLG_REF,
 	DLG_SEX,
 	DLG_SKIN,
+	DLG_CLICK,
 };
 
 
@@ -73,7 +76,10 @@ new MySQL:dbHandle;
 new skinmale[] = {78, 79, 134, 135, 137, 160, 212, 230};
 new skinfemale[] = {13, 41, 56, 65, 190, 192, 193, 195};
 
-
+new Float:base_spawn[][] = {
+	{1805.2761,2507.8167,15.8725, 307.0000},
+	{-2459.3999,2840.5247,38.4074, 90.0000}
+};
 
 
 main()
@@ -119,7 +125,7 @@ public OnPlayerConnect(playerid)
 	static const frm_query[] = "SELECT password FROM users WHERE name = '%s'";
 	new query[sizeof(frm_query) + MAX_PLAYER_NAME];
 	format(query, sizeof(query), frm_query, player_info[playerid][NAME]);
-	mysql_tquery(dbHandle, frm_query, "CheckRegistration", "i", playerid);
+	mysql_tquery(dbHandle,  query, "CheckRegistration", "i", playerid);
 
 	return 1;
 }
@@ -189,6 +195,13 @@ public OnPlayerDisconnect(playerid, reason)
 
 public OnPlayerSpawn(playerid)
 {
+	SetPlayerSkin(playerid, player_info[playerid][SKIN]);
+
+	new place = random(sizeof(base_spawn));
+	SetPlayerPos(playerid, base_spawn[place][0], base_spawn[place][1], base_spawn[place][2]);
+	SetPlayerFacingAngle(playerid, base_spawn[place][3]);
+	SetCameraBehindPlayer(playerid);
+	
 	return 1;
 }
 
@@ -398,7 +411,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 				}
 			}
-			
+
 			else
 			{
 				SCM(playerid, COLOR_RED, "Ââåäèòå /q, ÷òîáû âûéòè.");
@@ -668,6 +681,17 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			format(query2, sizeof(query2), frm_query2, player_info[playerid][NAME]);
 			mysql_tquery(dbHandle, query2, "PlayerLogin", "i", playerid);
 		}
+		
+		case DLG_CLICK:
+		{
+			switch(listitem)
+			{
+				case 0:
+				{
+				
+				}
+			}
+		}
 	}
 
 
@@ -694,6 +718,9 @@ public PlayerLogin(playerid)
 	    cache_get_value_name_int(0, "exp", player_info[playerid][EXP]);
 	    cache_get_value_name_int(0, "level", player_info[playerid][LEVEL]);
 	    cache_get_value_name_float(0, "hp", player_info[playerid][HP]);
+	    
+		SpawnPlayer(playerid);
+		SetPVarInt(playerid, "Login", 1);
 	}
 
 	return 1;
@@ -702,5 +729,34 @@ public PlayerLogin(playerid)
 
 public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 {
+    ShowPlayerDialog(
+		playerid,
+		DLG_CLICK,
+		DIALOG_STYLE_LIST,
+		"Äåéñòâèå íàä èãðîêîì",
+		"1. Èíôîðìàöèÿ èãðîêà\n\
+		2. Òåëåïîðòèðîâàòü\n\
+		3. Ïîñàäèòü â Äåìîðãàí\n\
+		4. Âûäàòü áàí ÷àòà\n\
+		5. Âûäàòü ïðåäóïðåæäåíèå\n\
+		6. Çàáëîêèðîâàòü àêêàóíò\n\
+		7. Âûäàòü ñêèí",
+		"Âûáðàòü",
+		"Âûõîä"
+		);
 	return 1;
+}
+
+forward OnPlayerClickMap(playerid, Float:fX, Float:fY, Float:fZ);
+public OnPlayerClickMap(playerid, Float:fX, Float:fY, Float:fZ)
+{
+	if (GetPlayerState(playerid) == PLAYER_STATE_DRIVER)
+	{
+		SetVehiclePos(GetPlayerVehicleID(playerid), Float:fX, Float:fY, Float:fZ + 3);
+		PutPlayerInVehicle(playerid, GetPlayerVehicleID(playerid), 0);
+	}
+	else SetPlayerPos(playerid, Float:fX, Float:fY, Float:fZ + 3);
+
+	SetPlayerVirtualWorld(playerid, 0);
+	SetPlayerInterior(playerid, 0);
 }
