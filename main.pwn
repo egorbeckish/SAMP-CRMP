@@ -77,6 +77,7 @@ new MySQL:dbHandle;
 new skinmale[] = {78, 79, 134, 135, 137, 160, 212, 230};
 new skinfemale[] = {13, 41, 56, 65, 190, 192, 193, 195};
 
+
 new Float:base_spawn[][] = {
 	{1805.2761,2507.8167,15.8725, 307.0000},
 	{-2459.3999,2840.5247,38.4074, 90.0000}
@@ -149,8 +150,8 @@ stock ShowLogin(playerid)
 {
 	new string[300];
 	format(string, sizeof(string),
-		"{FFFFFF}Âõîä{0089ff} %s{FFFFFF}. Ðàäû ïðèâåòñòâîâàòü âàñ ñíîâà íà íàøåì ñåðâåðå!\n\n\
-		Ââåäè ïàðîëü â ïîëå íèæå.",
+		"{FFFFFF}Вход{0089ff} %s{FFFFFF}. Рады приветствовать вас снова на нашем сервере!\n\n\
+		Введи пароль в поле ниже.",
 		player_info[playerid][NAME]
 	 );
 
@@ -158,10 +159,10 @@ stock ShowLogin(playerid)
 		playerid,
 		DLG_LOG,
 		DIALOG_STYLE_INPUT,
-		"Àâòîðèçàöèÿ ••• Ââîä ïàðîëÿ •••",
+		"Авторизация ••• Ввод пароля •••",
 		string,
-		"Äàëåå",
-		"Âûõîä"
+		"Далее",
+		"Выход"
 		);
 }
 
@@ -170,21 +171,21 @@ stock ShowRegistration(playerid)
 {
 	new string[400];
 	format(string, sizeof(string),
-		"{FFFFFF}Ðàäû ïðèâåòñòâîâàòü âàñ, {ffd310}%s{FFFFFF}, íà íàøåì ñåðâåðå Angelskiy.\n\
-		Äëÿ òîãî, ÷òîáû íà÷àòü èãðó íà ñåðâåðå, âàì íåîáõîäèìî ïðèäóìàòü ïàðîëü.\n\n\
-		{033fdd}Ïðèìå÷àíèå:{FFFFFF}\n\
-		\t{ff0000}• {FFFFFF}Ïàðîëü äîëæåí ñîäåðæàòü îò 8 äî 64 ñèìâîëîâ.\n\
-		\t{ff0000}• {FFFFFF}Ïàðîëü ìîæåò ñîäåðæàòü öèôðû è ëàòèíñêèå ñèìâîëû.",
+		"{FFFFFF}Рады приветствовать вас, {ffd310}%s{FFFFFF}, на нашем сервере Angelskiy.\n\
+		Для того, чтобы начать игру на сервере, вам необходимо придумать пароль.\n\n\
+		{033fdd}Примечание:{FFFFFF}\n\
+		\t{ff0000}• {FFFFFF}Пароль должен содержать от 8 до 64 символов.\n\
+		\t{ff0000}• {FFFFFF}Пароль может содержать цифры и латинские символы.",
 		player_info[playerid][NAME]);
 
 	SPD(
 		playerid,
 		DLG_REG,
 		DIALOG_STYLE_INPUT,
-		"Ðåãèñòðàöèÿ ••• Ââîä ïàðîëÿ •••",
+		"Регистрация ••• Ввод пароля •••",
 		string,
-		"Äàëåå",
-		"Âûõîä"
+		"Далее",
+		"Выход"
 		);
 }
 
@@ -371,14 +372,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					SetPVarInt(playerid, "CheckPassword", GetPVarInt(playerid, "CheckPassword") - 1);
 					if (GetPVarInt(playerid, "CheckPassword") > 0)
 					{
-						format(string, sizeof(string), "[ÎØÈÁÊÀ]{FFFFFF} Ââåäèòå ïàðîëü â âñïëûâàþùåì îêíå. Ó âàñ îñòàëîñü %i ïîïûò(êè/êà).", GetPVarInt(playerid, "CheckPassword"));
+						format(string, sizeof(string), "[ОШИБКА]{FFFFFF} Введите пароль в всплывающем окне. У вас осталось %i попыт(ки/ка).", GetPVarInt(playerid, "CheckPassword"));
 						return SCM(playerid, COLOR_RED, string);
 					}
 
 					else
 					{
-						SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ]{FFFFFF} Âû èñïîëüçîâàëè âñå ïîïûòêè, êîòîðûå âàì ïðåäîñòàâèëè.");
-						SCM(playerid, COLOR_RED, "Ââåäèòå /q, ÷òîáû âûéòè.");
+						SCM(playerid, COLOR_RED, "[ОШИБКА]{FFFFFF} Вы использовали все попытки, которые вам предоставили.");
+						SCM(playerid, COLOR_RED, "Введите /q, чтобы выйти.");
 						SPD(playerid, -1, 0, "", "", "", "");
 						return Kick(playerid);
 					}
@@ -398,14 +399,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					SetPVarInt(playerid, "CheckPassword", GetPVarInt(playerid, "CheckPassword") - 1);
 					if (GetPVarInt(playerid, "CheckPassword") > 0)
 					{
-						format(string, sizeof(string), "[ÎØÈÁÊÀ]{FFFFFF} Ââåäèòå ïàðîëü â âñïëûâàþùåì îêíå. Ó âàñ îñòàëîñü %i ïîïûò(êè/êà).", GetPVarInt(playerid, "CheckPassword"));
+						format(string, sizeof(string), "[ОШИБКА]{FFFFFF} Введите пароль в всплывающем окне. У вас осталось %i попыт(ки/ка).", GetPVarInt(playerid, "CheckPassword"));
 						return SCM(playerid, COLOR_RED, string);
 					}
 
 					else
 					{
-						SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ]{FFFFFF} Âû èñïîëüçîâàëè âñå ïîïûòêè, êîòîðûå âàì ïðåäîñòàâèëè.");
-						SCM(playerid, COLOR_RED, "Ââåäèòå /q, ÷òîáû âûéòè.");
+						SCM(playerid, COLOR_RED, "[ОШИБКА]{FFFFFF} Вы использовали все попытки, которые вам предоставили.");
+						SCM(playerid, COLOR_RED, "Введите /q, чтобы выйти.");
 						SPD(playerid, -1, 0, "", "", "", "");
 						return Kick(playerid);
 					}
@@ -415,7 +416,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 			else
 			{
-				SCM(playerid, COLOR_RED, "Ââåäèòå /q, ÷òîáû âûéòè.");
+				SCM(playerid, COLOR_RED, "Введите /q, чтобы выйти.");
 				SPD(playerid, -1, 0, "", "", "", "");
 				return Kick(playerid);
 			}
@@ -428,13 +429,13 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				if (!strlen(inputtext))
 				{
 					ShowRegistration(playerid);
-					return SendClientMessage(playerid, COLOR_RED, "[ÎØÈÁÊÀ]{FFFFFF} Ââåäèòå ïàðîëü â âûäåëåííîì âàì ïîëå.");
+					return SendClientMessage(playerid, COLOR_RED, "[ОШИБКА]{FFFFFF} Введите пароль в выделенном вам поле.");
 				}
 
 				if (!(8 <= strlen(inputtext) <= 64))
 				{
 					ShowRegistration(playerid);
-					return SendClientMessage(playerid, COLOR_RED, "[ÎØÈÁÊÀ]{FFFFFF} Ïàðîëü äîëæåí ñîäåðæàòü îò 8 äî 64 ñèìâîëîì.");
+					return SendClientMessage(playerid, COLOR_RED, "[ОШИБКА]{FFFFFF} Пароль должен содержать от 8 до 64 символом.");
 				}
 
 				new regex:rg_password = regex_new("^[a-zA-Z0-9.-_,]{1,64}$");
@@ -451,26 +452,26 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						playerid,
 						DLG_MAIL,
 						DIALOG_STYLE_INPUT,
-						"Ðåãèñòðàöèÿ ••• Ââîä email ••• ",
-						"{FFFFFF}Ââåäèòå Email äëÿ òîãî, ÷òîáû âû ìîãëè âîññòàíîâèòü ñâîé ïàðîëü ïðè åãî óòåðå.\n\n\
-						{033fdd}Ïðèìå÷àíèå{FFFFFF}\n\
-						\t{ff0000}• {FFFFFF}Åñëè ñåé÷àñ ó âàñ íåò ïî÷òû, òî âû ìîæåòå åå ñîçäàòü è â íàñòðîéêàõ ââåñòè åå.",
-						"Äàëåå",
-						"Ïðîïóñòèòü"
+						"Регистрация ••• Ввод email ••• ",
+						"{FFFFFF}Введите Email для того, чтобы вы могли восстановить свой пароль при его утере.\n\n\
+						{033fdd}Примечание{FFFFFF}\n\
+						\t{ff0000}• {FFFFFF}Если сейчас у вас нет почты, то вы можете ее создать и в настройках ввести ее.",
+						"Далее",
+						"Пропустить"
 						);
 				}
 
 				else
 				{
 				    ShowRegistration(playerid);
-				    return SCM(playerid, COLOR_RED, "[Îøèáêà]{FFFFFF} Ïàðîëü ìîæåò ñîäåðæàòü òîëüêî öèôðû è ëàòèíñêèå ñèìâîëû.");
+				    return SCM(playerid, COLOR_RED, "[Ошибка]{FFFFFF} Пароль может содержать только цифры и латинские символы.");
 				}
 				regex_delete(rg_password);
 			}
 
 			else
 			{
-				SCM(playerid, COLOR_RED, "Èñïîëüçóéòå /q, ÷òîáû âûéòè.");
+				SCM(playerid, COLOR_RED, "Используйте /q, чтобы выйти.");
 				SPD(playerid, -1, 0, "", "", "", "");
 				return Kick(playerid);
 			}
@@ -486,14 +487,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						playerid,
 						DLG_MAIL,
 						DIALOG_STYLE_INPUT,
-						"Ðåãèñòðàöèÿ ••• Ââîä email ••• ",
-						"{FFFFFF}Ââåäèòå Email äëÿ òîãî, ÷òîáû âû ìîãëè âîññòàíîâèòü ñâîé ïàðîëü ïðè åãî óòåðå.\n\n\
-						{033fdd}Ïðèìå÷àíèå{FFFFFF}\n\
-						\t{ff0000}• {FFFFFF}Åñëè ñåé÷àñ ó âàñ íåò ïî÷òû, òî âû ìîæåòå åå ñîçäàòü è â íàñòðîéêàõ ââåñòè åå.",
-						"Äàëåå",
-						"Ïðîïóñòèòü"
+						"Регистрация ••• Ввод email ••• ",
+						"{FFFFFF}Введите Email для того, чтобы вы могли восстановить свой пароль при его утере.\n\n\
+						{033fdd}Примечание{FFFFFF}\n\
+						\t{ff0000}• {FFFFFF}Если сейчас у вас нет почты, то вы можете ее создать и в настройках ввести ее.",
+						"Далее",
+						"Пропустить"
 						);
-					return SendClientMessage(playerid, COLOR_RED, "[Îøèáêà]{FFFFFF} Ââåäèòå email â âûäåëåííîì âàì ïîëå.");
+					return SendClientMessage(playerid, COLOR_RED, "[Ошибка]{FFFFFF} Введите email в выделенном вам поле.");
 				}
 
 				new regex:rg_mail = regex_new("^[a-zA-Z0-9.-_]{1,}@[a-zA-Z]{1,}.[a-zA-Z]{1,5}$");
@@ -504,12 +505,12 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						playerid,
 						DLG_REF,
 						DIALOG_STYLE_INPUT,
-						"Ðåãèñòðàöèÿ ••• Ðåôåðàëüíàÿ ñèñòåìà •••",
-						"{FFFFFF} Ââåäèòå íèêíåéì ïðèãëàñèâøåãî âàñ èãðîêà íà ñåðâåð.\n\n\
-						{033fdd}Ïðèìå÷àíèå{FFFFFF}\n\
-						\t{ff0000}• {FFFFFF} Íèêíåéì äîëæåí èìåòü âèä - Egor_Egorov.",
-						"Äàëåå",
-						"Ïðîïóñòèòü"
+						"Регистрация ••• Реферальная система •••",
+						"{FFFFFF} Введите никнейм пригласившего вас игрока на сервер.\n\n\
+						{033fdd}Примечание{FFFFFF}\n\
+						\t{ff0000}• {FFFFFF} Никнейм должен иметь вид - Egor_Egorov.",
+						"Далее",
+						"Пропустить"
 						);
 				}
 
@@ -519,14 +520,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						playerid,
 						DLG_MAIL,
 						DIALOG_STYLE_INPUT,
-						"Ðåãèñòðàöèÿ ••• Ââîä email ••• ",
-						"{FFFFFF}Ââåäèòå Email äëÿ òîãî, ÷òîáû âû ìîãëè âîññòàíîâèòü ñâîé ïàðîëü ïðè åãî óòåðå.\n\n\
-						{033fdd}Ïðèìå÷àíèå{FFFFFF}\n\
-						\t{ff0000}• {FFFFFF}Åñëè ñåé÷àñ ó âàñ íåò ïî÷òû, òî âû ìîæåòå åå ñîçäàòü è â íàñòðîéêàõ ââåñòè åå.",
-						"Äàëåå",
-						"Ïðîïóñòèòü"
+						"Регистрация ••• Ввод email ••• ",
+						"{FFFFFF}Введите Email для того, чтобы вы могли восстановить свой пароль при его утере.\n\n\
+						{033fdd}Примечание{FFFFFF}\n\
+						\t{ff0000}• {FFFFFF}Если сейчас у вас нет почты, то вы можете ее создать и в настройках ввести ее.",
+						"Далее",
+						"Пропустить"
 						);
-					return SendClientMessage(playerid, COLOR_RED, "[ÎØÈÁÊÀ]{FFFFFF} Ââåäèòå êîððåêòíûé email àäðåñ.");
+					return SendClientMessage(playerid, COLOR_RED, "[ОШИБКА]{FFFFFF} Введите корректный email адрес.");
 				}
 
 				regex_delete(rg_mail);
@@ -538,12 +539,12 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					playerid,
 					DLG_REF,
 					DIALOG_STYLE_INPUT,
-					"Ðåãèñòðàöèÿ ••• Ðåôåðàëüíàÿ ñèñòåìà •••",
-					"{FFFFFF} Ââåäèòå íèêíåéì ïðèãëàñèâøåãî âàñ èãðîêà íà ñåðâåð.\n\n\
-					{033fdd}Ïðèìå÷àíèå{FFFFFF}\n\
-					\t{ff0000}• {FFFFFF} Íèêíåéì äîëæåí èìåòü âèä - Egor_Egorov.",
-					"Äàëåå",
-					"Ïðîïóñòèòü"
+					"Регистрация ••• Реферальная система •••",
+					"{FFFFFF} Введите никнейм пригласившего вас игрока на сервер.\n\n\
+					{033fdd}Примечание{FFFFFF}\n\
+					\t{ff0000}• {FFFFFF} Никнейм должен иметь вид - Egor_Egorov.",
+					"Далее",
+					"Пропустить"
 					);
 			}
 		}
@@ -558,12 +559,12 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						playerid,
 						DLG_REF,
 						DIALOG_STYLE_INPUT,
-						"Ðåãèñòðàöèÿ ••• Ðåôåðàëüíàÿ ñèñòåìà •••",
-						"{FFFFFF} Ââåäèòå íèêíåéì ïðèãëàñèâøåãî âàñ èãðîêà íà ñåðâåð.\n\n\
-						{033fdd}Ïðèìå÷àíèå{FFFFFF}\n\
-						\t{ff0000}• {FFFFFF} Íèêíåéì äîëæåí èìåòü âèä - Egor_Egorov.",
-						"Äàëåå",
-						"Ïðîïóñòèòü"
+						"Регистрация ••• Реферальная система •••",
+						"{FFFFFF} Введите никнейм пригласившего вас игрока на сервер.\n\n\
+						{033fdd}Примечание{FFFFFF}\n\
+						\t{ff0000}• {FFFFFF} Никнейм должен иметь вид - Egor_Egorov.",
+						"Далее",
+						"Пропустить"
 						);
 				}
 
@@ -574,10 +575,10 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						playerid,
 						DLG_SEX,
 						DIALOG_STYLE_MSGBOX,
-						"Ðåãèñòðàöèÿ ••• Âûáîð ïîëà •••",
-						"Âûáåðèòå ïîë ïåðñîíàæà",
-						"Ìóæñêîé",
-						"Æåíñêèé"
+						"Регистрация ••• Выбор пола •••",
+						"Выберите пол персонажа",
+						"Мужской",
+						"Женский"
 						);
 				}
 
@@ -587,14 +588,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						playerid,
 						DLG_REF,
 						DIALOG_STYLE_INPUT,
-						"Ðåãèñòðàöèÿ ••• Ðåôåðàëüíàÿ ñèñòåìà •••",
-						"{FFFFFF} Ââåäèòå íèêíåéì ïðèãëàñèâøåãî âàñ èãðîêà íà ñåðâåð.\n\n\
-						{033fdd}Ïðèìå÷àíèå{FFFFFF}\n\
-						\t{ff0000}• {FFFFFF} Íèêíåéì äîëæåí èìåòü âèä - Egor_Egorov.",
-						"Äàëåå",
-						"Ïðîïóñòèòü"
+						"Регистрация ••• Реферальная система •••",
+						"{FFFFFF} Введите никнейм пригласившего вас игрока на сервер.\n\n\
+						{033fdd}Примечание{FFFFFF}\n\
+						\t{ff0000}• {FFFFFF} Никнейм должен иметь вид - Egor_Egorov.",
+						"Далее",
+						"Пропустить"
 						);
-					return SCM(playerid, COLOR_RED, "[ÎØÈÁÊÀ]{FFFFFF} Ââåäèòå íèêíåéì êîððåêòíî.");
+					return SCM(playerid, COLOR_RED, "[ОШИБКА]{FFFFFF} Введите никнейм корректно.");
 				}
 				regex_delete(rg_referal);
 			}
@@ -605,10 +606,10 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					playerid,
 					DLG_SEX,
 					DIALOG_STYLE_MSGBOX,
-					"Ðåãèñòðàöèÿ ••• Âûáîð ïîëà •••",
-					"Âûáåðèòå ïîë ïåðñîíàæà",
-					"Ìóæñêîé",
-					"Æåíñêèé"
+					"Регистрация ••• Выбор пола •••",
+					"Выберите пол персонажа",
+					"Мужской",
+					"Женский"
 					);
 			}
 		}
@@ -622,9 +623,9 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					playerid,
 					DLG_SKIN,
 					DIALOG_STYLE_LIST,
-					"Ðåãèñòðàöèÿ ••• Âûáîð îäåæäû •••",
+					"Регистрация ••• Выбор одежды •••",
 					"78\n79\n134\n135\n137\n160\n212\n230",
-					"Âûáðàòü",
+					"Выбрать",
 					""
 					);
 			}
@@ -636,9 +637,9 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					playerid,
 					DLG_SKIN,
 					DIALOG_STYLE_LIST,
-					"Ðåãèñòðàöèÿ ••• Âûáîð îäåæäû •••",
+					"Регистрация ••• Выбор одежды •••",
 					"13\n41\n56\n65\n190\n192\n193\n195",
-					"Âûáðàòü",
+					"Выбрать",
 					""
 					);
 			}
@@ -691,20 +692,20 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				case 0:
 				{
 				    format(string, sizeof(string),
-					"Íèêíåéì: %s\n\
-					Óðîâåíü: %i\n\
-					Îïûò: %i\n\n\
+					"Никнейм: %s\n\
+					Уровень: %i\n\
+					Опыт: %i\n\n\
 					________________________________\n\n\
-				 	\t\tÍàêàçàíèÿ\n\
+				 	\t  Наказания\n\
 				 	________________________________\n\n\
-				 	Êîë-âî ïðîâåäåííîå â äåìîðãàíå:\n\
-				 	Ïðåäóïðåæäåíèé: èç 3\n\
-				 	Êîë-âî ðàç áëîêèðîâêè àêêàóíòà:\n\n\
+				 	Кол-во проведенное в деморгане:\n\
+				 	Предупреждений: из 3\n\
+				 	Кол-во раз блокировки аккаунта:\n\n\
 					________________________________\n\n\
-				 	\tËè÷íàÿ èíôîðìàöèÿ\n\
+				 	\tЛичная информация\n\
 				 	________________________________\n\n\
-				 	Äàòà ðåãèñòðàöèè: %s\n\
-				 	Ðåãèñòðàöèîííûé IP-àäðåñ: %s\n\
+				 	Дата регистрации: %s\n\
+				 	Регистрационный IP-адрес: %s\n\
 				 	",
 				 	player_info[playerid][NAME],
 				 	player_info[playerid][LEVEL],
@@ -712,15 +713,15 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				 	player_info[playerid][REG_DATA],
 				 	player_info[playerid][REG_IP]
 					 );
-					 
+
 					ShowPlayerDialog(
 						playerid,
 						DLG_INFO_PLAYER,
 						DIALOG_STYLE_MSGBOX,
-						"Èíôîðìàöèÿ èãðîêà",
+						"Информация игрока",
 						string,
-						"Âûõîä",
-						""
+						"Назад",
+						"Выход"
 						);
 				}
 			}
@@ -766,16 +767,16 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 		playerid,
 		DLG_CLICK,
 		DIALOG_STYLE_LIST,
-		"Äåéñòâèå íàä èãðîêîì",
-		"1. Èíôîðìàöèÿ èãðîêà\n\
-		2. Òåëåïîðòèðîâàòü\n\
-		3. Ïîñàäèòü â Äåìîðãàí\n\
-		4. Âûäàòü áàí ÷àòà\n\
-		5. Âûäàòü ïðåäóïðåæäåíèå\n\
-		6. Çàáëîêèðîâàòü àêêàóíò\n\
-		7. Âûäàòü ñêèí",
-		"Âûáðàòü",
-		"Âûõîä"
+		"Действие над игроком",
+		"1. Информация игрока\n\
+		2. Телепортировать\n\
+		3. Посадить в Деморган\n\
+		4. Выдать бан чата\n\
+		5. Выдать предупреждение\n\
+		6. Заблокировать аккаунт\n\
+		7. Выдать скин",
+		"Выбрать",
+		"Выход"
 		);
 	return 1;
 }
